@@ -200,7 +200,7 @@
           kontraktor: cf.id, tahun: cf.tahun, lot: c.nama_kontrak ? ((String(c.nama_kontrak).match(/LOT\s*(\d+)/i) || [])[1] || String(cf.lot || '')) : String(cf.lot || ''),
           pelaksana: c.pelaksana || ('PT ' + cf.nama).toUpperCase(), nomor_kontrak: c.nomor_kontrak || '',
           tanggal_awal: c.tanggal_awal || '', tanggal_akhir: c.tanggal_akhir || '', tanggal_akhir_awal: c.tanggal_akhir_awal || '', jumlah_amandemen: c.jumlah_amandemen || 0,
-          nilai_kontrak: c.nilai_kontrak || 0, total_tagihan: c.total_tagihan || 0, tagihan_terakhir: c.tagihan_terakhir || '',
+          nilai_kontrak: c.nilai_kontrak || 0, total_tagihan: c.total_tagihan || 0, tagihan_terakhir: c.tagihan_terakhir || '', status_pembayaran: c.status_pembayaran || '',
           target_1p: Number(rab.volume_1p || 0), target_3p: Number(rab.volume_3p || 0), target_kwh: Number(rab.target_kwh || 0),
           paska_1p: real(cf.id, 'PASKA 1 PHASA'), prabayar_1p: real(cf.id, 'PRABAYAR 1 PHASA'), prabayar_3p: real(cf.id, 'PRABAYAR 3 PHASA'),
           periksa: real(cf.id, 'PERIKSA'), meter_box: real(cf.id, 'METER BOX'), box_combo: real(cf.id, 'BOX COMBO'),
@@ -211,7 +211,7 @@
         row.realisasi_kwh = row.realisasi_1p + row.prabayar_3p;
         row.persen = row.target_kwh ? row.realisasi_kwh / row.target_kwh : null;
         row.selisih = row.realisasi_kwh - row.target_kwh;
-        row.persen_rupiah = row.nilai_rab_ppn ? row.nilai_realisasi_ppn / row.nilai_rab_ppn : null;
+        row.persen_rupiah = rab.jumlah_biaya ? Number(rab.jumlah_biaya_real || 0) / Number(rab.jumlah_biaya) : (row.nilai_rab_ppn ? row.nilai_realisasi_ppn / row.nilai_rab_ppn : null);
         out.push(row);
       });
       const tahunList = Array.from(new Set(ctx.list.map((c) => c.tahun)));
