@@ -221,6 +221,7 @@ body { background: var(--color-bg); }
 #dash-root .leaflet-container { font-family: var(--font-anthropic-sans); }
 #dash-root .rp-dl { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
 #dash-root .rp-dl label { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: .06em; }
+#dash-root .rp-dl input[type=password] { font: inherit; font-size: .9rem; color: var(--color-fg); background: #0b1d26; border: 1px solid var(--color-border-line); border-radius: 10px; padding: 8px 10px; min-width: 12rem; }
 #dash-root .rp-dl select { font: inherit; text-transform: none; letter-spacing: 0; font-size: .9rem; color: var(--color-fg); background: #0b1d26; border: 1px solid var(--color-border-line); border-radius: 10px; padding: 8px 10px; min-width: 14rem; max-width: 100%; }
 #dash-root .rp-dl-act { display: flex; flex-wrap: wrap; gap: 8px; }
 #dash-root .rp-btn { padding: 9px 14px; font-weight: 600; font-size: .88rem; }
@@ -335,8 +336,9 @@ body { background: var(--color-bg); }
         </div>
       </div>
       <div class="rp-card wide" id="dil-unduh">
-        <div class="rp-ch"><h3>Unduh data detail</h3><p class="rp-cap">Per pelanggan: IDPEL, tarif, daya, kelurahan, gardu, merk/tahun/nomor meter lama, status, nomor meter baru. Tanpa nama, alamat, dan koordinat.</p></div>
+        <div class="rp-ch"><h3>Unduh data detail</h3><p class="rp-cap">Per pelanggan (IDPEL, tarif, daya, kelurahan, gardu, meter lama &amp; baru). Data terenkripsi; perlu kata sandi.</p></div>
         <div class="rp-dl">
+          <label>Kata sandi<input id="dil-dl-sandi" type="password" autocomplete="off" placeholder="Kata sandi data detail"></label>
           <label>Kategori<select id="dil-dl-kat">
             <option value="target_belum">Target umur · belum terganti</option>
             <option value="target_terganti">Target umur · sudah terganti</option>
@@ -346,12 +348,12 @@ body { background: var(--color-bg); }
           <label>Jenis<select id="dil-dl-jenis"><option value="Semua">Paska + Prabayar</option><option value="Paskabayar">Paskabayar</option><option value="Prabayar">Prabayar</option></select></label>
           <label>Kelurahan<select id="dil-dl-kel"><option value="SEMUA">Semua kelurahan</option></select></label>
           <div class="rp-dl-act">
-            <button type="button" class="rp-btn" id="dil-dl-siap">Hitung baris</button>
+            <button type="button" class="rp-btn" id="dil-dl-siap">Buka &amp; hitung baris</button>
             <button type="button" class="rp-btn primary" data-fmt="xlsx">Unduh Excel</button>
             <button type="button" class="rp-btn" data-fmt="csv">Unduh CSV</button>
           </div>
         </div>
-        <p class="rp-cap" id="dil-dl-info">Data detail (±1,5 MB) diambil saat Anda menekan tombol.</p>
+        <p class="rp-cap" id="dil-dl-info">Masukkan kata sandi, lalu tekan "Buka &amp; hitung baris".</p>
       </div>
     </div>
   </section>
@@ -580,7 +582,7 @@ body { background: var(--color-bg); }
 <script src="rekap.js?v=20261105-11"></script>
 <script src="gambar.js?v=20261105-11"></script>
 <script src="tata.js?v=20261105-11"></script>
-<script>window.DIL_VERSI = "202506-202609-1";</script>
-<script src="dil.js?v=20261105-12"></script>
+<script>window.DIL_VERSI = "202506-202609-2";</script>
+<script src="dil.js?v=20261105-13"></script>
 </body>
 </html>
