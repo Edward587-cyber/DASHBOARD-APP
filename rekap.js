@@ -8,7 +8,10 @@
 (() => {
   const GANTI = ['PASKA 1 PHASA', 'PRABAYAR 1 PHASA', 'PRABAYAR 3 PHASA'];
   const KAT = ['PASKA 1 PHASA', 'PRABAYAR 1 PHASA', 'PRABAYAR 3 PHASA', 'PERIKSA', 'METER BOX', 'BOX COMBO'];
-  const CL = ['< 10 tahun', '10 – < 15 tahun', '≥ 15 tahun', 'Tahun tidak tercatat'];
+  const CL = ['< 5 tahun', '5 – < 10 tahun', '10 – < 15 tahun', '≥ 15 tahun', 'Tahun tidak tercatat'];
+  const FLD = ['usia_lt5', 'usia_5_10', 'usia_10_15', 'usia_ge15', 'usia_na'];
+  const fieldOf = (cl) => FLD[Math.max(0, CL.indexOf(cl))] || 'usia_na';
+  const zero = () => Object.fromEntries(FLD.map((f) => [f, 0]));
   const semua = (c) => 'SEMUA-' + c.tahun;
   const keys = (c) => [c.id, semua(c)];
   const each = (ctx, fn) => ctx.list.forEach((c) => (ctx.src[c.id] || []).forEach((r) => fn(c, r)));
@@ -50,7 +53,7 @@
       const out = [];
       allKeys(ctx).forEach((k) => ['PENGGANTIAN KWH', ...GANTI, 'PERIKSA', 'METER BOX'].forEach((kat) => CL.forEach((cl) => {
         const a = acc[k + '|' + kat + '|' + cl];
-        out.push({ kontraktor: k, kategori: kat, cluster_usia: cl, jumlah: a ? a.jumlah : 0, rata_usia: a && cl !== CL[3] && a.jumlah ? Math.round((a.t / a.jumlah) * 10) / 10 : null });
+        out.push({ kontraktor: k, kategori: kat, cluster_usia: cl, jumlah: a ? a.jumlah : 0, rata_usia: a && cl !== CL[4] && a.jumlah ? Math.round((a.t / a.jumlah) * 10) / 10 : null });
       })));
       return out;
     },
@@ -64,9 +67,9 @@
         if (r.jenis !== 'Meter' || !GANTI.includes(r.kategori)) return;
         keys(c).forEach((k) => [r.kategori, 'PENGGANTIAN KWH'].forEach((kat) => {
           const key = k + '|' + kat + '|' + r.kelompok_alasan;
-          const a = acc[key] = acc[key] || { kontraktor: k, kategori: kat, kelompok_alasan: r.kelompok_alasan, jumlah: 0, usia_lt10: 0, usia_10_15: 0, usia_ge15: 0, usia_na: 0 };
+          const a = acc[key] = acc[key] || { kontraktor: k, kategori: kat, kelompok_alasan: r.kelompok_alasan, jumlah: 0, ...zero() };
           a.jumlah += 1;
-          if (r.cluster_usia === CL[0]) a.usia_lt10 += 1; else if (r.cluster_usia === CL[1]) a.usia_10_15 += 1; else if (r.cluster_usia === CL[2]) a.usia_ge15 += 1; else a.usia_na += 1;
+          a[fieldOf(r.cluster_usia)] += 1;
         }));
       });
       return Object.values(acc).sort((a, b) => b.jumlah - a.jumlah);
@@ -124,13 +127,13 @@
         if (r.jenis !== 'Meter' || !GANTI.includes(r.kategori)) return;
         const m = merk(r.merk_lama);
         keys(c).forEach((k) => {
-          const a = acc[k + '|' + m] = acc[k + '|' + m] || { kontraktor: k, merk: m, jumlah: 0, n: 0, t: 0, lt10: 0, a10: 0, ge15: 0, na: 0, tertua: null };
+          const a = acc[k + '|' + m] = acc[k + '|' + m] || { kontraktor: k, merk: m, jumlah: 0, n: 0, t: 0, ...zero(), tertua: null };
           a.jumlah += 1; if (r.usia != null && r.usia !== '') { a.n += 1; a.t += Number(r.usia); }
-          if (r.cluster_usia === CL[0]) a.lt10 += 1; else if (r.cluster_usia === CL[1]) a.a10 += 1; else if (r.cluster_usia === CL[2]) a.ge15 += 1; else a.na += 1;
+          a[fieldOf(r.cluster_usia)] += 1;
           if (r.tahun_meter && (a.tertua == null || Number(r.tahun_meter) < a.tertua)) a.tertua = Number(r.tahun_meter);
         });
       });
-      return Object.values(acc).map((a) => ({ kontraktor: a.kontraktor, merk: a.merk, jumlah: a.jumlah, usia_lt10: a.lt10, usia_10_15: a.a10, usia_ge15: a.ge15, usia_na: a.na, tahun_tertua: a.tertua, rata_usia: a.n ? Math.round((a.t / a.n) * 10) / 10 : null })).sort((a, b) => b.jumlah - a.jumlah);
+      return Object.values(acc).map((a) => ({ kontraktor: a.kontraktor, merk: a.merk, jumlah: a.jumlah, ...Object.fromEntries(FLD.map((f) => [f, a[f]])), tahun_tertua: a.tertua, rata_usia: a.n ? Math.round((a.t / a.n) * 10) / 10 : null })).sort((a, b) => b.jumlah - a.jumlah);
     },
   });
 

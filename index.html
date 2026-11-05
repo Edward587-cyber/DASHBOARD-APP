@@ -13,7 +13,7 @@
   --color-bg: #0e1217; --color-panel: #161c23; --color-fg: #e8ecf0; --color-fg-muted: #94a0ad; --color-border-line: #26303a;
   --color-ok: #4cc38a; --color-warn: #f0b443; --color-bad: #f2706a;
   --c1: #5aa2f5; --c2: #3cc4b0; --c3: #f0a63c; --c4: #b18ce8; --c5: #8d99a6; --c6: #ef6f86; --c7: #7fd06a; --c8: #d9b77e;
-  --u1: #5ccf8f; --u2: #f2bb4a; --u3: #ef5d60; --u4: #4b5663;
+  --u1: #38bdf8; --u2: #5ccf8f; --u3: #f2bb4a; --u4: #ef5d60; --u5: #4b5663;
   --cds-chart-grid: #222b34; --cds-chart-muted: #4b5663; --cds-chart-axis: #5c6670;
   --cds-surface-popover: #1f2730; --cds-border: #36414c; --cds-shadow-popover: 0 6px 20px rgba(0,0,0,.5); --cds-text-secondary: #94a0ad;
   --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 14px; --cds-gap-lg: 20px; --cds-gap-xl: 32px;
@@ -113,7 +113,7 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
   --accent: #2dd4bf; --accent-ink: #062a26; --accent-soft: rgba(45,212,191,.14);
   --color-ok: #34d399; --color-warn: #fbbf24; --color-bad: #f87171;
   --c1: #2dd4bf; --c2: #60a5fa; --c3: #fbbf24; --c4: #a78bfa; --c5: #94a3b8; --c6: #f472b6; --c7: #4ade80; --c8: #fb923c;
-  --u1: #34d399; --u2: #fbbf24; --u3: #f87171; --u4: #3b5260;
+  --u1: #38bdf8; --u2: #34d399; --u3: #fbbf24; --u4: #f87171; --u5: #3b5260;
   --cds-chart-grid: #17323d; --cds-chart-muted: #3b5260;
   --cds-surface-popover: #0c1f28; --cds-border: #2a4a57; --cds-text-secondary: #8ca5ae;
   --cds-radius: 12px; --cds-font-size-title: 2rem;
@@ -341,7 +341,8 @@ body { background: var(--color-bg); }
             <thead><tr>
               <th class="l" data-field="merk">Merk</th>
               <th data-field="jumlah">Jumlah</th>
-              <th data-field="usia_lt10">&lt; 10 tahun</th>
+              <th data-field="usia_lt5">&lt; 5 tahun</th>
+              <th data-field="usia_5_10">5 – &lt; 10 tahun</th>
               <th data-field="usia_10_15">10 – &lt; 15 tahun</th>
               <th data-field="usia_ge15">≥ 15 tahun</th>
               <th data-field="usia_na">Tidak tercatat</th>
@@ -413,7 +414,7 @@ body { background: var(--color-bg); }
       <li>Satu baris dihitung sebagai satu pelanggan bila kolom IDPEL berisi angka (minimal 6 digit). Baris "NO DATA" dan baris kosong diabaikan.</li>
       <li>Kolom dikenali dari judulnya (IDPEL, TANGGAL PENGGANTIAN, ALASAN, KETERANGAN, TAHUN di bawah METER LAMA), jadi susunan kolom yang berbeda antar pelaksana tetap terbaca.</li>
       <li>Box combo dihitung dari volume pekerjaan "pasang box" di sheet BOX COMBO; kWh meter yang dipasang di box ditampilkan terpisah.</li>
-      <li>Cluster umur: kurang dari 10 tahun, 10 sampai kurang dari 15 tahun, dan 15 tahun ke atas. Meter tanpa tahun pembuatan masuk "Tahun tidak tercatat".</li>
+      <li>Cluster umur: kurang dari 5 tahun, 5 sampai kurang dari 10 tahun, 10 sampai kurang dari 15 tahun, dan 15 tahun ke atas. Meter tanpa tahun pembuatan masuk "Tahun tidak tercatat".</li>
       <li>"Tgl sebelum SPJ" menghitung penggantian yang tanggalnya sebelum bulan awal SPJ, untuk dicek apakah termasuk kontrak ini.</li>
     </ul>
   </section>
@@ -424,11 +425,11 @@ body { background: var(--color-bg); }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="config.js?v=20261105-5"></script>
-<script src="sumber.js?v=20261105-5"></script>
-<script src="app.js?v=20261105-5"></script>
-<script src="rekap.js?v=20261105-5"></script>
-<script src="gambar.js?v=20261105-5"></script>
-<script src="tata.js?v=20261105-5"></script>
+<script src="config.js?v=20261105-6"></script>
+<script src="sumber.js?v=20261105-6"></script>
+<script src="app.js?v=20261105-6"></script>
+<script src="rekap.js?v=20261105-6"></script>
+<script src="gambar.js?v=20261105-6"></script>
+<script src="tata.js?v=20261105-6"></script>
 </body>
 </html>
