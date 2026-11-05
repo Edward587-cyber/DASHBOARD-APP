@@ -26,13 +26,20 @@
       d.append(el('span', 'sub', sub)); box.append(d);
     };
     const bu = S.ring.batas_umur;
-    ['Paskabayar', 'Prabayar'].forEach((j) => {
+    const J = S.jenis === 'Semua' ? ['Paskabayar', 'Prabayar'] : [S.jenis];
+    J.forEach((j) => {
       const r = t(j), n = sum(r, 'jumlah'), g = sum(r, 'terganti');
       tile('Target ' + j.toLowerCase() + ' ≥ ' + bu[j] + ' tahun', n, nf.format(g) + ' terganti (' + pf.format(n ? g / n : 0) + ') · sisa ' + nf.format(sum(r, 'belum')), n ? g / n : 0);
     });
-    const tAll = pick(rows, (r) => r.target);
-    tile('Sisa target belum diganti', sum(tAll, 'belum'), 'dari ' + nf.format(sum(tAll, 'jumlah')) + ' meter target');
-    tile('Semua meter terganti', sum(rows, 'terganti'), per(S.ring.periode_awal) + ' → ' + per(S.ring.periode_akhir) + ', semua umur');
+    const rj = pick(rows, jenisOk);
+    const tAll = pick(rj, (r) => r.target);
+    const lbl = S.jenis === 'Semua' ? '' : ' · ' + S.jenis.toLowerCase();
+    if (S.jenis !== 'Semua') {
+      const nt = pick(rj, (r) => !r.target);
+      tile('Meter bukan target' + lbl, sum(nt, 'jumlah'), nf.format(sum(nt, 'terganti')) + ' terganti (' + pf.format(sum(nt, 'jumlah') ? sum(nt, 'terganti') / sum(nt, 'jumlah') : 0) + ')');
+    }
+    tile('Sisa target belum diganti' + lbl, sum(tAll, 'belum'), 'dari ' + nf.format(sum(tAll, 'jumlah')) + ' meter target');
+    tile('Semua meter terganti' + lbl, sum(rj, 'terganti'), per(S.ring.periode_awal) + ' → ' + per(S.ring.periode_akhir) + ', semua umur');
     const cap = $('#dil-periode');
     if (cap) cap.textContent = 'DIL ' + S.ring.periode_awal + ' → ' + S.ring.periode_akhir + ' · ' + nf.format(S.ring.populasi) + ' pelanggan aktif · umur dihitung terhadap tahun ' + S.ring.tahun_acuan_umur + ' · diolah ' + S.ring.dibuat;
   }
@@ -42,7 +49,7 @@
     const box = $('#dil-umur'); if (!box) return;
     const rows = S.ring.per_jenis_umur;
     const cats = [];
-    ['Paskabayar', 'Prabayar'].forEach((j) => R.CL.forEach((c) => {
+    (S.jenis === 'Semua' ? ['Paskabayar', 'Prabayar'] : [S.jenis]).forEach((j) => R.CL.forEach((c) => {
       const r = pick(rows, (x) => x.jenis === j && x.cluster === c);
       const n = sum(r, 'jumlah'); if (!n) return;
       const tgt = r.some((x) => x.target);
@@ -58,16 +65,20 @@
     const box = $('#dil-bulan'); if (!box) return;
     box.replaceChildren();
     const rows = S.ring.per_bulan;
-    const keys = [['Paskabayar', true, 'Paska · target umur'], ['Paskabayar', false, 'Paska · lainnya'], ['Prabayar', true, 'Prabayar · target umur'], ['Prabayar', false, 'Prabayar · lainnya']];
-    const col = ['var(--c1)', 'color-mix(in srgb, var(--c1) 45%, transparent)', 'var(--c2)', 'color-mix(in srgb, var(--c2) 45%, transparent)'];
+    const keysAll = [['Paskabayar', true, 'Paska · target umur'], ['Paskabayar', false, 'Paska · lainnya'], ['Prabayar', true, 'Prabayar · target umur'], ['Prabayar', false, 'Prabayar · lainnya']];
+    const colAll = ['var(--c1)', 'color-mix(in srgb, var(--c1) 45%, transparent)', 'var(--c2)', 'color-mix(in srgb, var(--c2) 45%, transparent)'];
+    const idx = keysAll.map((k, i) => i).filter((i) => S.jenis === 'Semua' || keysAll[i][0] === S.jenis);
+    const keys = idx.map((i) => keysAll[i]); const col = idx.map((i) => colAll[i]);
     const months = Array.from(new Set(rows.map((r) => r.bulan_ganti))).sort();
     const data = months.map((m) => { const o = { m }; keys.forEach(([j, t], i) => { o[i] = sum(pick(rows, (r) => r.bulan_ganti === m && r.jenis === j && r.target === t), 'jumlah'); }); return o; });
     const lg = $('#dil-bulan-leg'); if (lg) R.legend(lg, keys.map((k, i) => [col[i], 1, k[2]]));
     const W = box.clientWidth || 700, H = 260;
     const svgN = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); box.append(svgN); box.style.minHeight = H + 'px';
     const svg = d3.select(svgN).attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
-    const st = d3.stack().keys([0, 1, 2, 3])(data);
-    const y = d3.scaleLinear([0, d3.max(data, (d) => d[0] + d[1] + d[2] + d[3]) || 1], [H - 24, 8]).nice();
+    const KS = keys.map((_, i) => i);
+    const tot = (d) => KS.reduce((s, i) => s + (d[i] || 0), 0);
+    const st = d3.stack().keys(KS)(data);
+    const y = d3.scaleLinear([0, d3.max(data, tot) || 1], [H - 24, 8]).nice();
     const t0 = svg.append('text').text(nf.format(y.domain()[1])); const L = t0.node().getComputedTextLength() + 10; t0.remove();
     const x = d3.scaleBand(months, [L, W - 4]).padding(0.2);
     y.ticks(4).forEach((t) => {
@@ -80,7 +91,7 @@
     st.forEach((s, si) => svg.append('g').selectAll('rect').data(s).join('rect')
       .attr('x', (d) => x(d.data.m) + (x.bandwidth() - bw) / 2).attr('width', bw)
       .attr('y', (d) => y(d[1])).attr('height', (d) => Math.max(0, y(d[0]) - y(d[1]) - (d[1] > d[0] ? 1 : 0))).attr('fill', col[si])
-      .on('mousemove', (ev, d) => R.showTip(box, ev, bln(d.data.m) + ' · total ' + nf.format(d.data[0] + d.data[1] + d.data[2] + d.data[3]), keys.map((k, i) => [col[i], 1, k[2], nf.format(d.data[i])])))
+      .on('mousemove', (ev, d) => R.showTip(box, ev, bln(d.data.m) + ' · total ' + nf.format(tot(d.data)), keys.map((k, i) => [col[i], 1, k[2], nf.format(d.data[i])])))
       .on('mouseleave', () => R.hideTip(box)));
   }
 
@@ -103,7 +114,7 @@
     tb.replaceChildren();
     const o = {};
     S.ring.per_kelurahan.forEach((r) => {
-      if (!r.target) return;
+      if (!r.target || !jenisOk(r)) return;
       const k = r.kelurahan + '|' + r.kecamatan;
       const a = o[k] = o[k] || { kel: r.kelurahan, kec: r.kecamatan, pt: 0, pg: 0, bt: 0, bg: 0 };
       if (r.jenis === 'Paskabayar') { a.pt += r.jumlah; a.pg += r.terganti; } else { a.bt += r.jumlah; a.bg += r.terganti; }
@@ -246,9 +257,11 @@
     };
     pie('#dil-pie-paska', pick(k, (r) => r.target && r.jenis === 'Paskabayar'), 'terganti');
     pie('#dil-pie-pra', pick(k, (r) => r.target && r.jenis === 'Prabayar'), 'terganti');
+    const sembunyi = (id, h) => { const b = $(id); if (b && b.parentElement) b.parentElement.hidden = h; };
+    sembunyi('#dil-pie-paska', S.jenis === 'Prabayar'); sembunyi('#dil-pie-pra', S.jenis === 'Paskabayar');
     const box = $('#dil-pie-semua');
     if (box) {
-      const g = pick(k, (r) => r.validasi.startsWith('Terganti'));
+      const g = pick(k, (r) => r.validasi.startsWith('Terganti') && jenisOk(r));
       const items = [
         { label: 'Meter tua · Paskabayar ≥ 15 th', value: sum(pick(g, (r) => r.target && r.jenis === 'Paskabayar'), 'jumlah'), color: 'var(--c1)' },
         { label: 'Meter tua · Prabayar ≥ 10 th', value: sum(pick(g, (r) => r.target && r.jenis === 'Prabayar'), 'jumlah'), color: 'var(--c2)' },
