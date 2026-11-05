@@ -38,16 +38,24 @@
   };
   dash.onData(gambarSamping);
 
+  // Tab: setiap menu menampilkan satu bagian saja; posisi tab disimpan di alamat (#nama).
   const links = Array.from(document.querySelectorAll('.rp-nav a[data-nav]'));
-  const set = (id) => links.forEach((a) => a.classList.toggle('on', a.dataset.nav === id));
-  const secs = links.map((a) => document.getElementById(a.dataset.nav)).filter(Boolean);
-  const onScroll = () => {
-    let cur = secs[0] && secs[0].id;
-    secs.forEach((s) => { if (s.getBoundingClientRect().top < 140) cur = s.id; });
-    if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4 && secs.length) cur = secs[secs.length - 1].id;
-    set(cur);
+  const TABS = links.map((a) => a.dataset.nav);
+  const tampil = (id, scroll) => {
+    if (!TABS.includes(id)) id = TABS[0];
+    links.forEach((a) => { const on = a.dataset.nav === id; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    document.querySelectorAll('#dash-root [data-tab]').forEach((s) => { s.hidden = s.dataset.tab !== id; });
+    if (scroll) window.scrollTo({ top: 0 });
+    // grafik di tab yang baru tampil digambar ulang setelah punya lebar
+    requestAnimationFrame(() => { dash.setParams({}); if (id === 'dil' && window.DIL_GAMBAR) window.DIL_GAMBAR(); });
   };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  links.forEach((a) => a.addEventListener('click', () => set(a.dataset.nav)));
-  onScroll();
+  links.forEach((a) => a.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (location.hash !== '#' + a.dataset.nav) history.replaceState(null, '', '#' + a.dataset.nav);
+    tampil(a.dataset.nav, true);
+  }));
+  document.querySelector('.rp-brand')?.addEventListener('click', (e) => { e.preventDefault(); history.replaceState(null, '', '#ringkasan'); tampil('ringkasan', true); });
+  window.addEventListener('hashchange', () => tampil(location.hash.slice(1), true));
+  const awal = location.hash.slice(1);
+  tampil(awal === 'atas' ? 'ringkasan' : awal, false);
 })();
