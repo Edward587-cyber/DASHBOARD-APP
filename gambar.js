@@ -256,6 +256,23 @@
     : { src: 'rekap_bulan', field: 'kategori', keys: BKAT, lbl: (k) => KLBL[k], col: BKAT.map((_, i) => dash.colors[i]) });
   document.querySelectorAll('#dash-root [data-tb]').forEach((b) => b.addEventListener('click', () => dash.setParams({ tb: b.dataset.tb })));
   dash.onData(() => document.querySelectorAll('#dash-root [data-tb]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tb === TB()))));
+  // filter tahun untuk tren bulanan: bawaan = tahun kontrak yang dipilih
+  const TY = () => { const v = dash.params().ty; return v === 'SEMUA' ? 'SEMUA' : String(v || TH()); };
+  dash.draw('tahun-bulan', (el) => {
+    el.replaceChildren();
+    const S = SERI_BULAN();
+    if (!ok(S.src)) return;
+    const now = bulanNow();
+    const yrs = Array.from(new Set(rowsOf(S.src).filter((r) => r.kontraktor === K() && r.bulan >= '2025-01' && r.bulan <= now).map((r) => r.bulan.slice(0, 4)))).sort();
+    if (!yrs.includes(String(TH()))) yrs.push(String(TH()));
+    [...yrs.sort(), 'SEMUA'].forEach((y) => {
+      const b = document.createElement('button'); b.type = 'button';
+      b.textContent = y === 'SEMUA' ? 'Semua tahun' : y;
+      b.setAttribute('aria-pressed', String(TY() === y));
+      b.addEventListener('click', () => dash.setParams({ ty: y }));
+      el.append(b);
+    });
+  });
   dash.draw('leg-bulan', (el) => { const S = SERI_BULAN(); if (!ok(S.src)) { el.replaceChildren(); return; } legend(el, S.keys.map((k, i) => [S.col[i], 1, S.lbl(k)])); });
   dash.draw('ch-bulan', (el) => {
     const S = SERI_BULAN();
@@ -264,8 +281,10 @@
     if (st !== 'ok') { memuat(el); return; }
     el.replaceChildren();
     const now = bulanNow();
-    const rows = rowsOf(S.src).filter((r) => r.kontraktor === K() && r.bulan >= '2025-01' && r.bulan <= now);
-    const months = Array.from(new Set(rows.map((r) => r.bulan))).sort();
+    const ty = TY();
+    const rows = rowsOf(S.src).filter((r) => r.kontraktor === K() && r.bulan >= '2025-01' && r.bulan <= now && (ty === 'SEMUA' || r.bulan.startsWith(ty)));
+    const months = ty === 'SEMUA' ? Array.from(new Set(rows.map((r) => r.bulan))).sort()
+      : Array.from({ length: 12 }, (_, i) => ty + '-' + String(i + 1).padStart(2, '0')).filter((m) => m <= now);
     if (!months.length) { const p = document.createElement('p'); p.className = 'rp-cap'; p.textContent = 'Belum ada tanggal yang terbaca.'; el.append(p); return; }
     const KK = S.keys;
     const data = months.map((m) => { const o = { bulan: m }; KK.forEach((k) => { o[k] = d3.sum(rows.filter((r) => r.bulan === m && r[S.field] === k), (r) => r.jumlah); }); return o; });
