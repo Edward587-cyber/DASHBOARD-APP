@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Realisasi Penggantian APP 2026 · UP3 Ciracas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
 :root {
   --font-anthropic-sans: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -102,29 +102,141 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
 #dash-root .rp-search { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); max-width: 16rem; }
 #dash-root [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 #dash-root [data-dash-source-state=empty] { color: transparent; }
+
+/* ===== Tema "control center" ===== */
+:root {
+  --font-anthropic-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-anthropic-serif: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --color-bg: #08161d; --color-side: #0a1a22; --color-panel: #0f2530; --color-panel-2: #11293500;
+  --color-fg: #e7f2f4; --color-fg-muted: #8ca5ae; --color-border-line: #1c3a46;
+  --accent: #2dd4bf; --accent-ink: #062a26; --accent-soft: rgba(45,212,191,.14);
+  --color-ok: #34d399; --color-warn: #fbbf24; --color-bad: #f87171;
+  --c1: #2dd4bf; --c2: #60a5fa; --c3: #fbbf24; --c4: #a78bfa; --c5: #94a3b8; --c6: #f472b6; --c7: #4ade80; --c8: #fb923c;
+  --u1: #34d399; --u2: #fbbf24; --u3: #f87171; --u4: #3b5260;
+  --cds-chart-grid: #17323d; --cds-chart-muted: #3b5260;
+  --cds-surface-popover: #0c1f28; --cds-border: #2a4a57; --cds-text-secondary: #8ca5ae;
+  --cds-radius: 12px; --cds-font-size-title: 2rem;
+}
+body { background: var(--color-bg); }
+#dash-root { max-width: none; padding: 0; margin: 0; }
+.rp-shell { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 100vh; }
+.rp-side { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--color-side); border-right: 1px solid var(--color-border-line); padding: 28px 18px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
+.rp-brand { display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--color-fg); padding: 0 8px 18px; }
+.rp-logo { width: 44px; height: 44px; border-radius: 12px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 22px; font-weight: 700; flex: none; }
+.rp-brand-t { display: flex; flex-direction: column; font-weight: 700; font-size: 1.25rem; letter-spacing: .06em; line-height: 1.15; }
+.rp-brand-t b { color: var(--accent); }
+.rp-side-h { margin: 14px 10px 4px; font-size: .75rem; letter-spacing: .18em; text-transform: uppercase; color: var(--color-fg-muted); }
+.rp-nav { display: flex; flex-direction: column; gap: 4px; }
+.rp-nav a { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; color: var(--color-fg); text-decoration: none; font-weight: 600; font-size: .98rem; }
+.rp-nav a span { width: 20px; text-align: center; color: var(--color-fg-muted); }
+.rp-nav a:hover { background: rgba(255,255,255,.04); }
+.rp-nav a.on { background: var(--accent-soft); color: var(--accent); }
+.rp-nav a.on span { color: var(--accent); }
+.rp-klist { display: flex; flex-direction: column; gap: 6px; }
+.rp-klist button { font: inherit; text-align: left; display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg); cursor: pointer; }
+.rp-klist button b { font-weight: 600; font-size: .92rem; }
+.rp-klist button small { color: var(--color-fg-muted); font-size: .78rem; font-family: var(--font-mono); }
+.rp-klist button:hover { border-color: var(--accent); }
+.rp-klist button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.rp-klist button[aria-pressed="true"] small { color: var(--accent-ink); opacity: .8; }
+.rp-main { min-width: 0; padding-block: 36px 60px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); box-sizing: border-box; }
+#dash-root .rp { max-width: 1500px; gap: 28px; }
+#dash-root .rp-head { flex-direction: row; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
+#dash-root .rp-head-l { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1 1 32rem; }
+#dash-root .rp-head-r { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+#dash-root .rp-eyebrow { margin: 0; color: var(--accent); font-weight: 700; letter-spacing: .18em; text-transform: uppercase; font-size: .85rem; }
+#dash-root .rp-head h1 { font-family: var(--font-anthropic-sans); font-weight: 700; font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: -.01em; }
+#dash-root .rp-take { color: var(--color-fg-muted); font-size: 1rem; }
+#dash-root .rp .rp-take b { color: var(--color-fg); }
+#dash-root .rp-pill { font-family: var(--font-mono); font-weight: 700; font-size: .9rem; padding: 10px 16px; border: 1px solid var(--color-border-line); border-radius: 12px; background: var(--color-panel); color: var(--color-fg); }
+#dash-root .rp-seg { gap: 0; border: 1px solid var(--color-border-line); border-radius: 12px; overflow: hidden; background: var(--color-panel); flex-wrap: wrap; }
+#dash-root .rp-seg button { border: 0; border-right: 1px solid var(--color-border-line); border-radius: 0; background: transparent; padding: 9px 16px; font-weight: 600; font-size: .9rem; }
+#dash-root .rp-seg button:last-child { border-right: 0; }
+#dash-root .rp-seg button[aria-pressed="true"], #dash-root .rp-seg.join button:hover { background: var(--accent); color: var(--accent-ink); }
+#dash-root .rp-sec { gap: 16px; scroll-margin-top: 20px; }
+#dash-root .rp-head { scroll-margin-top: 36px; }
+#dash-root .rp-sec > h2 { color: var(--accent); letter-spacing: .18em; text-transform: uppercase; font-size: .85rem; font-weight: 700; }
+#dash-root .rp-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 1200px) { #dash-root .rp-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+#dash-root .rp-kpi, #dash-root .rp-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 14px; }
+#dash-root .rp-kpi { padding: 20px 22px; gap: 8px; }
+#dash-root .rp-kpi .lbl { text-transform: uppercase; letter-spacing: .08em; font-size: .82rem; font-weight: 500; }
+#dash-root .rp-kpi .val { font-family: var(--font-mono); font-weight: 500; font-size: 2rem; }
+#dash-root .rp-kpi .sub { font-size: .9rem; }
+#dash-root .rp-bar { height: 8px; border-radius: 4px; background: #061219; }
+#dash-root .rp-bar > i { background: var(--accent); border-radius: 4px; }
+#dash-root .rp-card { padding: 22px 26px; gap: 14px; }
+#dash-root .rp-ch { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+#dash-root .rp-ch h3 { font-size: 1.2rem; font-weight: 700; }
+#dash-root .rp-ch .rp-cap { max-width: 60ch; text-align: right; }
+@media (max-width: 700px) { #dash-root .rp-ch .rp-cap { text-align: left; } }
+#dash-root .rp-grid { gap: 18px; }
+#dash-root .rp-table th { background: var(--color-panel); text-transform: uppercase; letter-spacing: .06em; font-size: .72rem; }
+#dash-root .rp-table td { font-family: var(--font-mono); font-size: .8rem; }
+#dash-root .rp-table td.l { font-family: var(--font-anthropic-sans); font-size: .85rem; }
+#dash-root .rp-clu { grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); }
+#dash-root .rp-clu > div { background: #0b1d26; border-color: var(--color-border-line); border-radius: 10px; }
+#dash-root .rp-clu .n { font-family: var(--font-mono); }
+#dash-root .rp-donut .center-n { font-family: var(--font-mono); }
+#dash-root .rp-search { background: #0b1d26; border-radius: 10px; padding: 8px 12px; }
+#dash-root .rp-gauge.on { border-color: var(--accent); background: var(--accent-soft); }
+#dash-root .rp-banner { border-radius: 12px; }
+#dash-root .rp-btn { border-radius: 10px; }
+@media (max-width: 900px) {
+  .rp-shell { grid-template-columns: minmax(0, 1fr); }
+  .rp-side { position: static; height: auto; padding: 16px; flex-direction: column; border-right: 0; border-bottom: 1px solid var(--color-border-line); }
+  .rp-brand { padding-bottom: 6px; }
+  .rp-nav, .rp-klist { flex-direction: row; overflow-x: auto; padding-bottom: 4px; }
+  .rp-nav a, .rp-klist button { flex: none; white-space: nowrap; }
+  .rp-nav a { padding: 8px 12px; }
+  .rp-main { padding-top: 20px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  #dash-root .rp-kpis { grid-template-columns: minmax(0, 1fr); }
+  #dash-root .rp-kpi.main { grid-column: auto; }
+}
 </style>
 </head>
 <body>
 <div id="dash-root">
+<div class="rp-shell">
+<aside class="rp-side">
+  <a class="rp-brand" href="#atas"><span class="rp-logo" aria-hidden="true">ϟ</span><span class="rp-brand-t">DAL APP<b>UP3 CIRACAS</b></span></a>
+  <p class="rp-side-h">Menu</p>
+  <nav class="rp-nav" aria-label="Bagian dashboard">
+    <a href="#atas" data-nav="atas"><span aria-hidden="true">▦</span>Ringkasan</a>
+    <a href="#komposisi" data-nav="komposisi"><span aria-hidden="true">◎</span>Komposisi &amp; capaian</a>
+    <a href="#kontrak" data-nav="kontrak"><span aria-hidden="true">☰</span>Capaian per kontrak</a>
+    <a href="#umur" data-nav="umur"><span aria-hidden="true">⏳</span>Cluster umur</a>
+    <a href="#alasan" data-nav="alasan"><span aria-hidden="true">≋</span>Cluster alasan</a>
+    <a href="#tren" data-nav="tren"><span aria-hidden="true">↗</span>Tren &amp; merk</a>
+    <a href="#catatan" data-nav="catatan"><span aria-hidden="true">Σ</span>Catatan</a>
+  </nav>
+  <p class="rp-side-h">Kontrak</p>
+  <div class="rp-klist" role="group" aria-label="Pilih kontrak">
+    <button type="button" data-k="SEMUA" aria-pressed="true"><b>Semua kontrak</b><small>Lot 1 – 4</small></button>
+    <button type="button" data-k="DHANA" aria-pressed="false"><b>Dhana Julaga Ekada</b><small>Lot 1 · 0034.Pj</small></button>
+    <button type="button" data-k="HAFIZ" aria-pressed="false"><b>Hafiz Energi Tama</b><small>Lot 2 · 0035.Pj</small></button>
+    <button type="button" data-k="ANGGADA" aria-pressed="false"><b>Anggada Perkasa Tehnik</b><small>Lot 3 · 0032.Pj</small></button>
+    <button type="button" data-k="JATI" aria-pressed="false"><b>Jati Teknik</b><small>Lot 4 · 0033.Pj</small></button>
+  </div>
+</aside>
+<main class="rp-main">
+
 
 
 <div class="rp" id="realisasi-app">
   <div id="banner" class="rp-banner" role="alert" hidden></div>
-  <header class="rp-head">
-    <h1>Realisasi penggantian APP 2026 · UP3 Ciracas</h1>
-    <p class="rp-take">Penggantian kWh meter mencapai <b data-draw="t-real" data-source="capaian" data-field="realisasi_kwh">—</b> pelanggan dari target RAB <b data-draw="t-target" data-source="capaian" data-field="target_kwh">—</b> (<b data-draw="t-pct" data-source="capaian">—</b>). Meter lama berumur 15 tahun atau lebih mencapai <b data-draw="t-tua" data-source="rekap_usia">—</b> dari meter yang diganti, dan alasan terbanyak adalah <b data-draw="t-alasan" data-source="rekap_alasan" data-field="kelompok_alasan">—</b>.</p>
-  </header>
-
-  <div class="rp-toolbar">
-    <div class="rp-seg" role="group" aria-label="Pilih kontrak">
-      <button type="button" data-k="SEMUA" aria-pressed="true">Semua kontrak</button>
-      <button type="button" data-k="DHANA" aria-pressed="false">Lot 1 · Dhana Julaga Ekada</button>
-      <button type="button" data-k="HAFIZ" aria-pressed="false">Lot 2 · Hafiz Energi Tama</button>
-      <button type="button" data-k="ANGGADA" aria-pressed="false">Lot 3 · Anggada Perkasa Tehnik</button>
-      <button type="button" data-k="JATI" aria-pressed="false">Lot 4 · Jati Teknik</button>
+  <header class="rp-head" id="atas">
+    <div class="rp-head-l">
+      <p class="rp-eyebrow">PLN UP3 Ciracas / Dal APP</p>
+      <h1>Realisasi Penggantian APP 2026</h1>
+      <p class="rp-take">Penggantian kWh meter mencapai <b data-draw="t-real" data-source="capaian" data-field="realisasi_kwh">—</b> pelanggan dari target RAB <b data-draw="t-target" data-source="capaian" data-field="target_kwh">—</b> (<b data-draw="t-pct" data-source="capaian">—</b>). Meter lama berumur 15 tahun atau lebih mencapai <b data-draw="t-tua" data-source="rekap_usia">—</b> dari meter yang diganti, dan alasan terbanyak adalah <b data-draw="t-alasan" data-source="rekap_alasan" data-field="kelompok_alasan">—</b>.</p>
     </div>
-    <div class="rp-status"><span id="status-muat" class="rp-cap">Memuat…</span><button type="button" id="muat-ulang" class="rp-btn">Muat ulang</button></div>
-  </div>
+    <div class="rp-head-r">
+      <span class="rp-pill" id="status-muat">Memuat…</span>
+      <div class="rp-seg join"><button type="button" id="muat-ulang">Muat ulang</button></div>
+    </div>
+  </header>
 
   <section class="rp-kpis" id="ringkasan" aria-label="Ringkasan realisasi">
     <div class="rp-kpi main">
@@ -146,18 +258,15 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
     <h2>Komposisi dan capaian</h2>
     <div class="rp-grid">
       <div class="rp-card">
-        <h3>Komposisi realisasi per kategori</h3>
-        <p class="rp-cap">Porsi pelanggan per sheet pekerjaan (box combo dalam unit box).</p>
+        <div class="rp-ch"><h3>Komposisi realisasi per kategori</h3><p class="rp-cap">Porsi pelanggan per sheet pekerjaan (box combo dalam unit box).</p></div>
         <div class="rp-donut" data-draw="dn-kategori" data-source="rekap_kategori"></div>
       </div>
       <div class="rp-card">
-        <h3>Capaian target per kontrak</h3>
-        <p class="rp-cap">Realisasi kWh dibanding target RAB. Klik salah satu untuk memfilter seluruh dashboard.</p>
+        <div class="rp-ch"><h3>Capaian target per kontrak</h3><p class="rp-cap">Realisasi kWh dibanding target RAB. Klik salah satu untuk memfilter seluruh dashboard.</p></div>
         <div class="rp-gauges" data-draw="gauges" data-source="capaian"></div>
       </div>
       <div class="rp-card wide">
-        <h3>Realisasi vs target per kontrak</h3>
-        <p class="rp-cap">Batang berwarna = realisasi per kategori; garis putih = target RAB.</p>
+        <div class="rp-ch"><h3>Realisasi vs target per kontrak</h3><p class="rp-cap">Batang berwarna = realisasi per kategori; garis putih = target RAB.</p></div>
         <div class="rp-legend" data-draw="leg-kontrak" data-source="capaian"></div>
         <div class="rp-chart" data-draw="ch-kontrak" data-source="capaian"></div>
       </div>
@@ -200,14 +309,12 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
     <h2>Cluster umur meter lama</h2>
     <div class="rp-grid">
       <div class="rp-card">
-        <h3>Komposisi umur seluruh penggantian kWh</h3>
-        <p class="rp-cap">Umur = tahun penggantian − tahun pembuatan meter lama.</p>
+        <div class="rp-ch"><h3>Komposisi umur seluruh penggantian kWh</h3><p class="rp-cap">Umur = tahun penggantian − tahun pembuatan meter lama.</p></div>
         <div class="rp-donut" data-draw="dn-usia" data-source="rekap_usia"></div>
         <div class="rp-clu" data-draw="clu-tiles" data-source="rekap_usia"></div>
       </div>
       <div class="rp-card">
-        <h3>Umur per kategori pekerjaan</h3>
-        <p class="rp-cap">Jumlah pelanggan per cluster umur, setiap batang satu sheet.</p>
+        <div class="rp-ch"><h3>Umur per kategori pekerjaan</h3><p class="rp-cap">Jumlah pelanggan per cluster umur, setiap batang satu sheet.</p></div>
         <div class="rp-legend" data-draw="leg-usia" data-source="rekap_usia"></div>
         <div class="rp-chart" data-draw="ch-usia" data-source="rekap_usia"></div>
       </div>
@@ -226,13 +333,11 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
     </div>
     <div class="rp-grid">
       <div class="rp-card">
-        <h3>Porsi kelompok alasan</h3>
-        <p class="rp-cap">Setiap irisan satu kelompok alasan penggantian.</p>
+        <div class="rp-ch"><h3>Porsi kelompok alasan</h3><p class="rp-cap">Setiap irisan satu kelompok alasan penggantian.</p></div>
         <div class="rp-donut" data-draw="dn-alasan" data-source="rekap_alasan"></div>
       </div>
       <div class="rp-card">
-        <h3>Kelompok alasan, dipecah per umur meter</h3>
-        <p class="rp-cap">Alasan dari kolom ALASAN GANTI METER; bila kosong, dari kolom KETERANGAN.</p>
+        <div class="rp-ch"><h3>Kelompok alasan, dipecah per umur meter</h3><p class="rp-cap">Alasan dari kolom ALASAN GANTI METER; bila kosong, dari kolom KETERANGAN.</p></div>
         <div class="rp-legend" data-draw="leg-alasan" data-source="rekap_alasan"></div>
         <div class="rp-chart" data-draw="ch-alasan" data-source="rekap_alasan"></div>
       </div>
@@ -261,14 +366,12 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
     <h2>Tren dan merk</h2>
     <div class="rp-grid">
       <div class="rp-card wide">
-        <h3>Realisasi per bulan</h3>
-        <p class="rp-cap">Bulan dari tanggal penggantian/periksa (bila kosong, tanggal input). Bulan sebelum 2025 atau setelah bulan ini dianggap salah ketik dan tidak digambar.</p>
+        <div class="rp-ch"><h3>Realisasi per bulan</h3><p class="rp-cap">Bulan dari tanggal penggantian/periksa (bila kosong, tanggal input). Bulan sebelum 2025 atau setelah bulan ini dianggap salah ketik dan tidak digambar.</p></div>
         <div class="rp-legend" data-draw="leg-bulan" data-source="rekap_bulan"></div>
         <div class="rp-chart" data-draw="ch-bulan" data-source="rekap_bulan"></div>
       </div>
       <div class="rp-card wide">
-        <h3>Merk meter lama yang diganti</h3>
-        <p class="rp-cap">Dua belas merk terbanyak; label kanan menunjukkan jumlah dan rata-rata umur.</p>
+        <div class="rp-ch"><h3>Merk meter lama yang diganti</h3><p class="rp-cap">Dua belas merk terbanyak; label kanan menunjukkan jumlah dan rata-rata umur.</p></div>
         <div class="rp-chart" data-draw="ch-merk" data-source="rekap_merk"></div>
       </div>
     </div>
@@ -286,12 +389,16 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
   </section>
 </div>
 
+</main>
 </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="config.js"></script>
 <script src="sumber.js"></script>
 <script src="app.js"></script>
 <script src="rekap.js"></script>
 <script src="gambar.js"></script>
+<script src="tata.js"></script>
 </body>
 </html>
