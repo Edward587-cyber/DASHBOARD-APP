@@ -26,10 +26,10 @@
   const capRow = () => rowsOf('capaian').find((r) => r.kontraktor === K());
 
   // filter tombol
-  document.querySelectorAll('#realisasi-app [data-k]').forEach((b) => b.addEventListener('click', () => dash.setParams({ k: b.dataset.k })));
+  document.querySelectorAll('#dash-root [data-k]').forEach((b) => b.addEventListener('click', () => dash.setParams({ k: b.dataset.k })));
   document.querySelectorAll('#realisasi-app [data-ka]').forEach((b) => b.addEventListener('click', () => dash.setParams({ ka: b.dataset.ka })));
   dash.onData(() => {
-    document.querySelectorAll('#realisasi-app [data-k]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === K())));
+    document.querySelectorAll('#dash-root [data-k]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === K())));
     document.querySelectorAll('#realisasi-app [data-ka]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.ka === KA())));
   });
   let cari = '';
