@@ -136,6 +136,36 @@
     },
   });
 
+  dash.calc('rekap_ringkas', {
+    title: 'Ringkasan meter tua & meter muda',
+    fn: (ctx) => {
+      const acc = {};
+      const SEBAB = [
+        ['terbakar', /TERBAKAR|PETIR|HANGUS|MELELEH|KORSLET/],
+        ['token', /TOKEN|KCT|KEYPAD|KREDIT/],
+        ['hewan', /HEWAN|SERANGGA|SEMUT|TIKUS|CICAK|RAYAP|TOKEK/],
+      ];
+      each(ctx, (c, r) => {
+        if (r.jenis !== 'Meter' || !GANTI.includes(r.kategori)) return;
+        const pas = r.kategori === 'PASKA 1 PHASA';
+        const u = r.usia == null || r.usia === '' ? null : Number(r.usia);
+        const teks = String(r.alasan || '').toUpperCase();
+        keys(c).forEach((k) => {
+          const a = acc[k] = acc[k] || { kontraktor: k, total: 0, paska: 0, paska_ge15: 0, prabayar: 0, prabayar_ge10: 0, lt5: 0, lt5_terbakar: 0, lt5_token: 0, lt5_hewan: 0, lt5_lainnya: 0 };
+          a.total += 1;
+          if (pas) { a.paska += 1; if (u != null && u >= 15) a.paska_ge15 += 1; }
+          else { a.prabayar += 1; if (u != null && u >= 10) a.prabayar_ge10 += 1; }
+          if (u != null && u < 5) {
+            a.lt5 += 1;
+            const s = SEBAB.find(([, re]) => re.test(teks));
+            a['lt5_' + (s ? s[0] : 'lainnya')] += 1;
+          }
+        });
+      });
+      return Object.values(acc).map((a) => ({ ...a, meter_tua: a.paska_ge15 + a.prabayar_ge10 }));
+    },
+  });
+
   dash.calc('rekap_merk', {
     title: 'Merk meter lama',
     fn: (ctx) => {

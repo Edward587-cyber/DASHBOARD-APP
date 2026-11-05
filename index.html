@@ -146,7 +146,7 @@ body { background: var(--color-bg); }
 .rp-main { min-width: 0; padding-block: 36px 60px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); box-sizing: border-box; }
 #dash-root .rp { max-width: 1500px; gap: 28px; }
 #dash-root .rp-head { flex-direction: row; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
-#dash-root .rp-head-l { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1 1 32rem; }
+#dash-root .rp-head-l { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1 1 100%; }
 #dash-root .rp-head-r { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 #dash-root .rp-eyebrow { margin: 0; color: var(--accent); font-weight: 700; letter-spacing: .18em; text-transform: uppercase; font-size: .85rem; }
 #dash-root .rp-head h1 { font-family: var(--font-anthropic-sans); font-weight: 700; font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: -.01em; }
@@ -212,7 +212,14 @@ body { background: var(--color-bg); }
 #dash-root .rp-kpis.rp-kpis3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 900px) { #dash-root .rp-kpis.rp-kpis3 { grid-template-columns: minmax(0, 1fr); } }
 #dash-root .rp-kpis3 .rp-kpi.on { border-color: var(--accent); }
-#dash-root .rp-chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 2.4rem; }
+#dash-root .rp-chips { display: flex; flex-direction: column; gap: 8px; min-height: 2.4rem; }
+#dash-root .rp-chipgrp { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); align-items: center; gap: 8px; }
+#dash-root .rp-chiprow { display: flex; flex-wrap: wrap; gap: 8px; }
+#dash-root .rp-chipttl { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+@media (max-width: 700px) { #dash-root .rp-chipgrp { grid-template-columns: minmax(0, 1fr); } }
+#dash-root .rp-chip small { font-size: .75rem; color: var(--color-fg-muted); }
+#dash-root .rp-chip.accent { border-color: var(--accent); }
+#dash-root .rp-chip.accent b { color: var(--accent); }
 #dash-root .rp-chip { display: inline-flex; align-items: baseline; gap: 8px; padding: 7px 12px; border: 1px solid var(--color-border-line); border-radius: 999px; background: var(--color-panel); font-size: .85rem; color: var(--color-fg-muted); }
 #dash-root .rp-chip b { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--color-fg); }
 #dash-root .rp-chip.ok b { color: var(--color-ok); } #dash-root .rp-chip.warn b { color: var(--color-warn); } #dash-root .rp-chip.bad b { color: var(--color-bad); }
@@ -378,7 +385,7 @@ body { background: var(--color-bg); }
   <header class="rp-head" id="atas">
     <div class="rp-head-l">
       <h1>Realisasi Penggantian APP <span id="judul-tahun">—</span></h1>
-      <div class="rp-chips" data-draw="t-chips" data-source="capaian rekap_usia rekap_alasan"></div>
+      <div class="rp-chips" data-draw="t-chips" data-source="capaian rekap_ringkas"></div>
     </div>
     <div class="rp-head-r">
       <span class="rp-pill" id="status-muat">Memuat…</span>
@@ -739,8 +746,8 @@ body { background: var(--color-bg); }
 <script src="config.js?v=20261105-11"></script>
 <script src="sumber.js?v=20261105-19"></script>
 <script src="app.js?v=20261105-11"></script>
-<script src="rekap.js?v=20261105-22"></script>
-<script src="gambar.js?v=20261105-23"></script>
+<script src="rekap.js?v=20261105-24"></script>
+<script src="gambar.js?v=20261105-25"></script>
 <script src="tata.js?v=20261105-23"></script>
 <script>window.DIL_VERSI = "202412-202609-1";</script>
 <script src="materi.js?v=20261105-20" defer></script>
