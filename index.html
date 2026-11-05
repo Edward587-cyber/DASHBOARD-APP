@@ -679,8 +679,14 @@ body { background: var(--color-bg); }
     <h2>Tren bulanan</h2>
     <div class="rp-grid">
       <div class="rp-card wide">
-        <div class="rp-ch"><h3>Realisasi per bulan</h3><p class="rp-cap">Bulan dari tanggal penggantian/periksa (bila kosong, tanggal input). Bulan sebelum 2025 atau setelah bulan ini dianggap salah ketik dan tidak digambar.</p></div>
-        <div class="rp-legend" data-draw="leg-bulan" data-source="rekap_bulan"></div>
+        <div class="rp-ch"><h3>Realisasi per bulan</h3><p class="rp-cap">Semua penggantian (meter tua dan rusak) per bulan tanggal penggantian; bila kosong, tanggal input. Tanggal sebelum 2025 atau setelah bulan ini dianggap salah ketik dan tidak digambar.</p></div>
+        <div class="rp-toolbar">
+          <div class="rp-legend" data-draw="leg-bulan" data-source="rekap_bulan"></div>
+          <div class="rp-seg" role="group" aria-label="Pecah realisasi per bulan menurut">
+            <button type="button" data-tb="kategori" aria-pressed="true">Per kategori</button>
+            <button type="button" data-tb="alasan" aria-pressed="false">Meter tua vs rusak</button>
+          </div>
+        </div>
         <div class="rp-chart" data-draw="ch-bulan" data-source="rekap_bulan"></div>
       </div>
     </div>
@@ -732,8 +738,8 @@ body { background: var(--color-bg); }
 <script src="config.js?v=20261105-11"></script>
 <script src="sumber.js?v=20261105-19"></script>
 <script src="app.js?v=20261105-11"></script>
-<script src="rekap.js?v=20261105-19"></script>
-<script src="gambar.js?v=20261105-11"></script>
+<script src="rekap.js?v=20261105-22"></script>
+<script src="gambar.js?v=20261105-22"></script>
 <script src="tata.js?v=20261105-17"></script>
 <script>window.DIL_VERSI = "202412-202609-1";</script>
 <script src="materi.js?v=20261105-20" defer></script>
