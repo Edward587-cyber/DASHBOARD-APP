@@ -129,7 +129,7 @@
   // ---------- peta ----------
   let map, layer;
   function peta() {
-    const box = $('#dil-peta'); if (!box || !window.L) return;
+    const box = $('#dil-peta'); if (!box || !window.L || !box.clientWidth) return;
     if (!map) {
       map = L.map(box, { preferCanvas: true, scrollWheelZoom: false, attributionControl: true });
       const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
@@ -296,6 +296,7 @@
     $('#dil-dl-sandi')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') coba(); });
     document.querySelectorAll('#dil-unduh button[data-fmt]').forEach((b) => b.addEventListener('click', () => unduh(b.dataset.fmt).catch((e) => { $('#dil-dl-info').textContent = e.message === 'Kata sandi kosong' ? 'Masukkan kata sandi untuk membuka data detail.' : 'Gagal: ' + e.message; })));
     let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(gambar, 200); });
+    window.DIL_GAMBAR = () => gambar();
   }
 
   async function mulai() {

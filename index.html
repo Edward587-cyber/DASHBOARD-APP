@@ -232,18 +232,23 @@ body { background: var(--color-bg); }
 #dash-root .rp-pie h4 { margin: 0; font-size: .95rem; font-weight: 700; }
 #dash-root .rp-pie .rp-donut { min-height: 200px; gap: 14px; }
 @media (max-width: 900px) { #dash-root .rp-pies { grid-template-columns: minmax(0, 1fr); } }
+.rp-side { position: fixed; left: 0; top: 0; bottom: 0; width: 300px; height: auto; }
+.rp-shell { grid-template-columns: 300px minmax(0, 1fr); }
+.rp-shell > .rp-main { grid-column: 2; }
+@media (max-width: 900px) { .rp-side { position: static; width: auto; } .rp-shell > .rp-main { grid-column: 1; } }
+#dash-root [data-tab][hidden] { display: none !important; }
+.rp-side > * { flex-shrink: 0; }
 </style>
 </head>
 <body>
 <div id="dash-root">
 <div class="rp-shell">
 <aside class="rp-side">
-  <a class="rp-brand" href="#atas"><img class="rp-logo-img" src="logo-pln.png?v=2" alt="Logo PLN" width="40" height="58"><span class="rp-brand-t">MONITORING<b>DAL APP</b></span></a>
+  <a class="rp-brand" href="#ringkasan"><img class="rp-logo-img" src="logo-pln.png?v=2" alt="Logo PLN" width="40" height="58"><span class="rp-brand-t">MONITORING<b>DAL APP</b></span></a>
   <p class="rp-side-h">Menu</p>
   <nav class="rp-nav" aria-label="Bagian dashboard">
-    <a href="#atas" data-nav="atas"><span aria-hidden="true">▦</span>Ringkasan</a>
+    <a href="#ringkasan" data-nav="ringkasan"><span aria-hidden="true">▦</span>Ringkasan</a>
     <a href="#dil" data-nav="dil"><span aria-hidden="true">⌖</span>Peta umur &amp; DIL</a>
-    <a href="#komposisi" data-nav="komposisi"><span aria-hidden="true">◎</span>Komposisi &amp; capaian</a>
     <a href="#kontrak" data-nav="kontrak"><span aria-hidden="true">☰</span>Capaian per kontrak</a>
     <a href="#umur" data-nav="umur"><span aria-hidden="true">⏳</span>Cluster umur</a>
     <a href="#alasan" data-nav="alasan"><span aria-hidden="true">≋</span>Cluster alasan</a>
@@ -273,7 +278,7 @@ body { background: var(--color-bg); }
     </div>
   </header>
 
-  <section class="rp-kpis" id="ringkasan" aria-label="Ringkasan realisasi">
+  <section class="rp-kpis" id="ringkasan" data-tab="ringkasan" aria-label="Ringkasan realisasi">
     <div class="rp-kpi main">
       <span class="lbl">Realisasi kWh meter (Paska 1P + Prabayar 1P + Prabayar 3P)</span>
       <span class="val" data-draw="kpi-total" data-source="capaian" data-field="realisasi_kwh">—</span>
@@ -289,7 +294,7 @@ body { background: var(--color-bg); }
   </section>
 
 
-  <section class="rp-sec" id="dil">
+  <section class="rp-sec" id="dil" data-tab="dil">
     <h2>Peta umur meter &amp; realisasi DIL</h2>
     <div class="rp-toolbar">
       <p class="rp-cap" id="dil-periode">Memuat data DIL…</p>
@@ -373,7 +378,7 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
-  <section class="rp-sec" id="komposisi">
+  <section class="rp-sec" id="komposisi" data-tab="ringkasan">
     <h2>Komposisi dan capaian</h2>
     <div class="rp-grid">
       <div class="rp-card">
@@ -392,7 +397,7 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
-  <section class="rp-sec" id="kontrak">
+  <section class="rp-sec" id="kontrak" data-tab="kontrak">
     <h2>Capaian per kontrak</h2>
     <div class="rp-card">
       <p class="rp-cap">Target dari volume RAB (montage kWh 1 phasa + 3 phasa). Kolom "Volume di RAB" adalah angka realisasi yang diketik di sheet RAB, untuk pembanding. Masa SPJ dan nilai dari LIST TAGIHAN.</p>
@@ -424,7 +429,7 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
-  <section class="rp-sec" id="umur">
+  <section class="rp-sec" id="umur" data-tab="umur">
     <h2>Cluster umur meter lama</h2>
     <div class="rp-grid">
       <div class="rp-card">
@@ -467,7 +472,7 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
-  <section class="rp-sec" id="alasan">
+  <section class="rp-sec" id="alasan" data-tab="alasan">
     <h2>Cluster alasan penggantian</h2>
     <div class="rp-toolbar">
       <div class="rp-seg" role="group" aria-label="Kategori alasan">
@@ -508,7 +513,7 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
-  <section class="rp-sec" id="penyebab">
+  <section class="rp-sec" id="penyebab" data-tab="penyebab">
     <h2>Penyebab ganti meter per umur</h2>
     <div class="rp-toolbar">
       <div class="rp-seg" role="group" aria-label="Pilih umur meter">
@@ -562,7 +567,7 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
-  <section class="rp-sec" id="tren">
+  <section class="rp-sec" id="tren" data-tab="tren">
     <h2>Tren bulanan</h2>
     <div class="rp-grid">
       <div class="rp-card wide">
@@ -573,7 +578,7 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
-  <section class="rp-sec" id="catatan">
+  <section class="rp-sec" id="catatan" data-tab="catatan">
     <h2>Catatan perhitungan</h2>
     <ul class="rp-notes">
       <li>Satu baris dihitung sebagai satu pelanggan bila kolom IDPEL berisi angka (minimal 6 digit). Baris "NO DATA" dan baris kosong diabaikan.</li>
@@ -596,8 +601,8 @@ body { background: var(--color-bg); }
 <script src="app.js?v=20261105-11"></script>
 <script src="rekap.js?v=20261105-11"></script>
 <script src="gambar.js?v=20261105-11"></script>
-<script src="tata.js?v=20261105-11"></script>
+<script src="tata.js?v=20261105-16"></script>
 <script>window.DIL_VERSI = "202506-202609-4";</script>
-<script src="dil.js?v=20261105-15"></script>
+<script src="dil.js?v=20261105-16"></script>
 </body>
 </html>
