@@ -11,8 +11,9 @@
   const KA = () => dash.params().ka || 'PENGGANTIAN KWH';
   const ok = (id) => dash.data(id).status === 'ok';
   const rowsOf = (id) => (ok(id) ? dash.data(id).data : []);
-  const CL = ['< 10 tahun', '10 – < 15 tahun', '≥ 15 tahun', 'Tahun tidak tercatat'];
-  const CLOP = [1, 1, 1, 1];
+  const CL = ['< 5 tahun', '5 – < 10 tahun', '10 – < 15 tahun', '≥ 15 tahun', 'Tahun tidak tercatat'];
+  const FLD = ['usia_lt5', 'usia_5_10', 'usia_10_15', 'usia_ge15', 'usia_na'];
+  const CLOP = [1, 1, 1, 1, 1];
   const clColor = (i) => 'var(--u' + (i + 1) + ')';
   const KATS = ['PASKA 1 PHASA', 'PRABAYAR 1 PHASA', 'PRABAYAR 3 PHASA', 'PERIKSA', 'METER BOX'];
   const KLBL = { 'PASKA 1 PHASA': 'Paska 1P', 'PRABAYAR 1 PHASA': 'Prabayar 1P', 'PRABAYAR 3 PHASA': 'Prabayar 3P', PERIKSA: 'Periksa', 'METER BOX': 'Meter box' };
@@ -227,7 +228,7 @@
     if (st !== 'ok') { memuat(el); return; }
     const rows = rowsOf('rekap_alasan').filter((r) => r.kontraktor === K() && r.kategori === KA()).sort((a, b) => b.jumlah - a.jumlah);
     const tot = d3.sum(rows, (r) => r.jumlah);
-    const cats = rows.map((r) => ({ label: r.kelompok_alasan, rs: [r.usia_lt10, r.usia_10_15, r.usia_ge15, r.usia_na], total: r.jumlah, end: nf.format(r.jumlah) + ' · ' + pf.format(tot ? r.jumlah / tot : 0) }));
+    const cats = rows.map((r) => ({ label: r.kelompok_alasan, rs: FLD.map((f) => Number(r[f] || 0)), total: r.jumlah, end: nf.format(r.jumlah) + ' · ' + pf.format(tot ? r.jumlah / tot : 0) }));
     if (!cats.length) { el.replaceChildren(); const p = document.createElement('p'); p.className = 'rp-cap'; p.textContent = 'Belum ada penggantian untuk pilihan ini.'; el.append(p); return; }
     hstack(el, cats, (c) => c.rs.map((v, i) => ({ v, color: clColor(i), op: CLOP[i] })), {
       tip: (c) => c.rs.map((v, i) => [clColor(i), CLOP[i], CL[i], nf.format(v)]),
@@ -300,7 +301,7 @@
     if (st !== 'ok') { memuat(el); return; }
     const rows = merkRows().filter((r) => r.merk !== 'Tidak terbaca').sort(mUrut.jumlah).slice(0, 12).sort(mUrut[MU()]);
     if (!rows.length) { el.replaceChildren(); const p = document.createElement('p'); p.className = 'rp-cap'; p.textContent = 'Belum ada data merk.'; el.append(p); return; }
-    const cats = rows.map((r) => ({ label: r.merk, rs: [r.usia_lt10, r.usia_10_15, r.usia_ge15, r.usia_na], total: r.jumlah, rata: r.rata_usia, tertua: r.tahun_tertua,
+    const cats = rows.map((r) => ({ label: r.merk, rs: FLD.map((f) => Number(r[f] || 0)), total: r.jumlah, rata: r.rata_usia, tertua: r.tahun_tertua,
       end: nf.format(r.jumlah) + ' · ' + pf.format(r.usia_ge15 / r.jumlah) + ' ≥15 th' }));
     hstack(el, cats, (c) => c.rs.map((v, i) => ({ v, color: clColor(i), op: 1 })), {
       tip: (c) => [...c.rs.map((v, i) => [clColor(i), 1, CL[i], nf.format(v) + ' (' + pf.format(c.total ? v / c.total : 0) + ')']), [null, 1, 'Rata-rata umur', c.rata == null ? '—' : String(c.rata).replace('.', ',') + ' tahun'], [null, 1, 'Tahun pembuatan tertua', c.tertua || '—']],
@@ -316,7 +317,7 @@
       const td = (t, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = t; tr.append(c); return c; };
       td(r.merk, 'l');
       td(nf.format(r.jumlah));
-      [r.usia_lt10, r.usia_10_15, r.usia_ge15, r.usia_na].forEach((v, i) => {
+      FLD.map((f) => Number(r[f] || 0)).forEach((v, i) => {
         const p = r.jumlah ? v / r.jumlah : 0;
         const c = td(v ? nf.format(v) + ' · ' + pf.format(p) : '—', 'heat');
         if (v) c.style.background = 'color-mix(in srgb, var(--u' + (i + 1) + ') ' + Math.round(8 + p * 62) + '%, transparent)';

@@ -64,7 +64,7 @@
     if (/BOX|PANEL|PASANG|PEMASANGAN/.test(t)) return 'Pekerjaan box / pasang baru';
     return 'Lainnya';
   };
-  const cluster = (u) => (u == null ? 'Tahun tidak tercatat' : u < 10 ? '< 10 tahun' : u < 15 ? '10 – < 15 tahun' : '≥ 15 tahun');
+  const cluster = (u) => (u == null ? 'Tahun tidak tercatat' : u < 5 ? '< 5 tahun' : u < 10 ? '5 – < 10 tahun' : u < 15 ? '10 – < 15 tahun' : '≥ 15 tahun');
 
   // ---------- kolom dikenali dari judul ----------
   const findHeader = (rows) => { for (let i = 0; i < rows.length; i++) if ((rows[i] || []).some((c) => norm(c) === 'IDPEL')) return i; return -1; };
