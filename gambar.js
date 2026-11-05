@@ -7,8 +7,8 @@
   const ok = (id) => dash.data(id).status === 'ok';
   const rowsOf = (id) => (ok(id) ? dash.data(id).data : []);
   const CL = ['< 10 tahun', '10 – < 15 tahun', '≥ 15 tahun', 'Tahun tidak tercatat'];
-  const CLOP = [0.35, 0.65, 1, 1];
-  const clColor = (i) => (i === 3 ? 'var(--cds-chart-muted)' : dash.colors[0]);
+  const CLOP = [1, 1, 1, 1];
+  const clColor = (i) => 'var(--u' + (i + 1) + ')';
   const KATS = ['PASKA 1 PHASA', 'PRABAYAR 1 PHASA', 'PRABAYAR 3 PHASA', 'PERIKSA', 'METER BOX'];
   const KLBL = { 'PASKA 1 PHASA': 'Paska 1P', 'PRABAYAR 1 PHASA': 'Prabayar 1P', 'PRABAYAR 3 PHASA': 'Prabayar 3P', PERIKSA: 'Periksa', 'METER BOX': 'Meter box' };
   const NAMA = { ANGGADA: 'Anggada Perkasa Tehnik', JATI: 'Jati Teknik', DHANA: 'Dhana Julaga Ekada', HAFIZ: 'Hafiz Energi Tama', SEMUA: 'Total 4 kontrak' };
@@ -291,6 +291,130 @@
     const cats = rows.map((r) => ({ label: r.merk, total: r.jumlah, rata: r.rata_usia, end: nf.format(r.jumlah) + (r.rata_usia != null ? ' · ' + String(r.rata_usia).replace('.', ',') + ' th' : '') }));
     hstack(el, cats, (c) => [{ v: c.total, color: dash.colors[1], op: 1 }], {
       tip: (c) => [[dash.colors[1], 1, 'Jumlah', nf.format(c.total)], [null, 1, 'Rata-rata umur', c.rata == null ? '—' : String(c.rata).replace('.', ',') + ' tahun']],
+    });
+  });
+  // ---------- donut ----------
+  const donut = (el, items, centerN, centerL) => {
+    el.replaceChildren();
+    items = items.filter((d) => d.value > 0);
+    const tot = d3.sum(items, (d) => d.value);
+    if (!tot) { const p = document.createElement('p'); p.className = 'rp-cap'; p.textContent = 'Belum ada data untuk pilihan ini.'; el.append(p); return; }
+    const S = Math.min(220, Math.max(160, (el.clientWidth || 400) * 0.45));
+    const R = S / 2, r0 = R * 0.62;
+    const svgN = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    el.append(svgN);
+    const svg = d3.select(svgN).attr('width', S).attr('height', S).attr('viewBox', `${-R} ${-R} ${S} ${S}`);
+    const arcs = d3.pie().sort(null).value((d) => d.value).padAngle(0.012)(items);
+    const arc = d3.arc().innerRadius(r0).outerRadius(R - 2).cornerRadius(3);
+    const arcH = d3.arc().innerRadius(r0).outerRadius(R + 2).cornerRadius(3);
+    svg.selectAll('path').data(arcs).join('path').attr('d', arc).attr('fill', (d) => d.data.color)
+      .on('mousemove', function (ev, d) { d3.select(this).attr('d', arcH); showTip(el, ev, d.data.label, [[d.data.color, 1, 'Jumlah', nf.format(d.data.value)], [null, 1, 'Porsi', pf.format(d.data.value / tot)]]); })
+      .on('mouseleave', function () { d3.select(this).attr('d', arc); hideTip(el); });
+    svg.append('text').attr('class', 'center-n').attr('text-anchor', 'middle').attr('dy', '0.1em').text(centerN != null ? centerN : nf.format(tot));
+    svg.append('text').attr('class', 'center-l').attr('text-anchor', 'middle').attr('dy', '1.7em').text(centerL || 'total');
+    const leg = document.createElement('div'); leg.className = 'rp-dleg';
+    items.forEach((d) => {
+      const row = document.createElement('div');
+      const i = document.createElement('i'); i.style.background = d.color;
+      const l = document.createElement('span'); l.textContent = d.label;
+      const v = document.createElement('span'); v.className = 'v'; v.textContent = nf.format(d.value);
+      const p = document.createElement('span'); p.className = 'p'; p.textContent = pf.format(d.value / tot);
+      row.append(i, l, v, p); leg.append(row);
+    });
+    el.append(leg);
+  };
+  const guard = (el, id) => {
+    const st = dash.data(id).status;
+    if (st === 'error') { failed(el); return false; }
+    if (st !== 'ok') { el.replaceChildren(); return false; }
+    return true;
+  };
+
+  dash.draw('dn-kategori', (el) => {
+    if (!guard(el, 'rekap_kategori')) return;
+    const KK = ['PASKA 1 PHASA', 'PRABAYAR 1 PHASA', 'PRABAYAR 3 PHASA', 'PERIKSA', 'METER BOX', 'BOX COMBO'];
+    const LB = ['Paska 1P', 'Prabayar 1P', 'Prabayar 3P', 'Periksa', 'Meter box', 'Box combo'];
+    const rows = rowsOf('rekap_kategori').filter((r) => r.kontraktor === K());
+    donut(el, KK.map((k, i) => ({ label: LB[i], value: Number((rows.find((r) => r.kategori === k) || {}).realisasi || 0), color: dash.colors[i] })), null, 'pekerjaan');
+  });
+
+  dash.draw('dn-usia', (el) => {
+    if (!guard(el, 'rekap_usia')) return;
+    const rows = rowsOf('rekap_usia').filter((r) => r.kontraktor === K() && r.kategori === 'PENGGANTIAN KWH');
+    const tot = d3.sum(rows, (r) => r.jumlah);
+    const tua = d3.sum(rows.filter((r) => r.cluster_usia === '≥ 15 tahun'), (r) => r.jumlah);
+    donut(el, CL.map((c, i) => ({ label: c, value: Number((rows.find((r) => r.cluster_usia === c) || {}).jumlah || 0), color: clColor(i) })), tot ? pf.format(tua / tot) : '—', 'berumur ≥ 15 th');
+  });
+
+  dash.draw('dn-alasan', (el) => {
+    if (!guard(el, 'rekap_alasan')) return;
+    const rows = rowsOf('rekap_alasan').filter((r) => r.kontraktor === K() && r.kategori === KA()).sort((a, b) => b.jumlah - a.jumlah);
+    const pal = ['--c1', '--c6', '--c3', '--c2', '--c4', '--c7', '--c8', '--c5'];
+    donut(el, rows.map((r, i) => ({ label: r.kelompok_alasan, value: r.jumlah, color: 'var(' + pal[i % pal.length] + ')' })), null, 'penggantian');
+  });
+
+  // ---------- gauge capaian ----------
+  dash.draw('gauges', (el) => {
+    if (!guard(el, 'capaian')) return;
+    el.replaceChildren();
+    const order = ['DHANA', 'HAFIZ', 'ANGGADA', 'JATI', 'SEMUA'];
+    rowsOf('capaian').slice().sort((a, b) => order.indexOf(a.kontraktor) - order.indexOf(b.kontraktor)).forEach((r) => {
+      const box = document.createElement('div'); box.className = 'rp-gauge' + (K() === r.kontraktor ? ' on' : ''); box.tabIndex = 0;
+      box.setAttribute('role', 'button');
+      box.addEventListener('click', () => dash.setParams({ k: r.kontraktor }));
+      box.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dash.setParams({ k: r.kontraktor }); } });
+      const W = 150, H = 92, R = 66;
+      const svgN = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      const svg = d3.select(svgN).attr('width', W).attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
+      const g = svg.append('g').attr('transform', `translate(${W / 2},${R + 8})`);
+      const p = r.persen == null ? 0 : r.persen;
+      const col = r.persen == null ? 'var(--cds-chart-muted)' : p >= 1 ? 'var(--color-ok)' : p >= 0.9 ? 'var(--color-warn)' : 'var(--color-bad)';
+      const a = d3.arc().innerRadius(R - 12).outerRadius(R).cornerRadius(6).startAngle(-Math.PI / 2);
+      g.append('path').attr('d', a({ endAngle: Math.PI / 2 })).attr('fill', 'var(--cds-chart-grid)');
+      g.append('path').attr('d', a({ endAngle: -Math.PI / 2 + Math.PI * Math.min(1, p) })).attr('fill', col);
+      g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.2em').attr('font-size', 22).attr('fill', 'var(--color-fg)').text(r.persen == null ? '—' : pf.format(p));
+      g.append('text').attr('text-anchor', 'middle').attr('dy', '1.1em').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').attr('font-family', 'var(--font-anthropic-sans)').text(nf.format(r.realisasi_kwh) + ' / ' + nf.format(r.target_kwh));
+      const nm = document.createElement('div'); nm.className = 'nm';
+      nm.textContent = r.kontraktor === 'SEMUA' ? 'Total 4 kontrak' : 'Lot ' + r.lot + ' · ' + (NAMA[r.kontraktor] || r.kontraktor);
+      box.append(svgN, nm); el.append(box);
+    });
+  });
+
+  // ---------- realisasi vs target per kontrak (batang bertumpuk + garis target) ----------
+  const KF = [['paska_1p', 'Paska 1P'], ['prabayar_1p', 'Prabayar 1P'], ['prabayar_3p', 'Prabayar 3P']];
+  dash.draw('leg-kontrak', (el) => { if (!ok('capaian')) { el.replaceChildren(); return; } legend(el, [...KF.map(([, l], i) => [dash.colors[i], 1, l]), ['var(--color-fg)', 1, 'Target RAB']]); });
+  dash.draw('ch-kontrak', (el) => {
+    if (!guard(el, 'capaian')) return;
+    el.replaceChildren();
+    const order = ['DHANA', 'HAFIZ', 'ANGGADA', 'JATI'];
+    const rows = rowsOf('capaian').filter((r) => r.kontraktor !== 'SEMUA').sort((a, b) => order.indexOf(a.kontraktor) - order.indexOf(b.kontraktor));
+    const W = el.clientWidth || 700, H = 260, L = 48, B = 34;
+    const svgN = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); el.append(svgN); el.style.minHeight = H + 'px';
+    const svg = d3.select(svgN).attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+    const ymax = d3.max(rows, (r) => Math.max(r.target_kwh, r.realisasi_kwh)) || 1;
+    const y = d3.scaleLinear([0, ymax * 1.08], [H - B, 10]).nice();
+    const x = d3.scaleBand(rows.map((r) => r.kontraktor), [L, W - 8]).padding(0.35);
+    y.ticks(4).forEach((t) => {
+      svg.append('line').attr('x1', L).attr('x2', W - 8).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', L - 6).attr('y', y(t)).attr('dy', '0.35em').attr('text-anchor', 'end').text(nf.format(t));
+    });
+    const bw = Math.min(64, x.bandwidth());
+    rows.forEach((r) => {
+      const x0 = x(r.kontraktor) + (x.bandwidth() - bw) / 2;
+      let acc = 0;
+      const dim = K() !== 'SEMUA' && K() !== r.kontraktor ? 0.35 : 1;
+      KF.forEach(([f, l], i) => {
+        const v = Number(r[f] || 0); if (!v) return;
+        svg.append('rect').attr('x', x0).attr('width', bw).attr('y', y(acc + v)).attr('height', Math.max(0, y(acc) - y(acc + v) - 1)).attr('rx', 2)
+          .attr('fill', dash.colors[i]).attr('opacity', dim).style('cursor', 'pointer')
+          .on('click', () => dash.setParams({ k: r.kontraktor }))
+          .on('mousemove', (ev) => showTip(el, ev, 'Lot ' + r.lot + ' · ' + (NAMA[r.kontraktor] || ''), [...KF.map(([ff, ll], j) => [dash.colors[j], 1, ll, nf.format(r[ff] || 0)]), [null, 1, 'Target RAB', nf.format(r.target_kwh)], [null, 1, 'Capaian', r.persen == null ? '—' : pf.format(r.persen)]]))
+          .on('mouseleave', () => hideTip(el));
+        acc += v;
+      });
+      if (r.target_kwh) svg.append('line').attr('x1', x0 - 8).attr('x2', x0 + bw + 8).attr('y1', y(r.target_kwh)).attr('y2', y(r.target_kwh)).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2).attr('stroke-dasharray', '5 3');
+      svg.append('text').attr('class', 'strong').attr('x', x0 + bw / 2).attr('y', y(Math.max(acc, r.target_kwh)) - 8).attr('text-anchor', 'middle').text(r.persen == null ? '' : pf.format(r.persen));
+      svg.append('text').attr('x', x0 + bw / 2).attr('y', H - 12).attr('text-anchor', 'middle').text('Lot ' + r.lot + ' · ' + r.kontraktor);
     });
   });
 })();
