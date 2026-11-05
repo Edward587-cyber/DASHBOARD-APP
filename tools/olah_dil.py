@@ -40,18 +40,22 @@ def tanggal(v):
 
 
 def baca(path):
-    rows = CalamineWorkbook.from_path(path).get_sheet_by_name(CalamineWorkbook.from_path(path).sheet_names[0]).to_python()
-    h = [str(x).strip() for x in rows[0]]
+    wb = CalamineWorkbook.from_path(path)
+    it = wb.get_sheet_by_name(wb.sheet_names[0]).iter_rows()
+    h = [str(x).strip() for x in next(it)]
     cols = COLS + [c for c in OPT if c in h]
     idx = [h.index(c) for c in cols]
-    df = pd.DataFrame([[r[i] if i < len(r) else None for i in idx] for r in rows[1:]], columns=cols)
+    data = [[r[i] if i < len(r) else None for i in idx] for r in it]
+    df = pd.DataFrame(data, columns=cols)
     for c in ['IDPEL', 'NOMOR_METER_KWH', 'TARIF', 'JENISLAYANAN', 'MERK_METER_KWH', 'TYPE_METER_KWH', 'NOMOR_GARDU', 'STATUS_DIL'] + [c for c in OPT if c in df]:
         df[c] = df[c].map(teks)
     for c in ['DAYA', 'TAHUN_TERA_METER_KWH', 'TAHUN_BUAT_METER_KWH']:
         df[c] = pd.to_numeric(df[c].replace({'': None, ' ': None}), errors='coerce')
     df['TANGGAL_PASANG_RUBAH_APP'] = df['TANGGAL_PASANG_RUBAH_APP'].map(tanggal)
     for c in ['KOORDINAT_X', 'KOORDINAT_Y']:
-        df[c] = pd.to_numeric(df[c], errors='coerce') / 1e10
+        v = pd.to_numeric(df[c], errors='coerce')
+        # sebagian DIL menyimpan koordinat x 1e10 (mis. -63187911111), sebagian sudah dalam derajat
+        df[c] = v.where(v.abs() < 1000, v / 1e10)
     return df
 
 
@@ -124,8 +128,17 @@ def main(f_awal, f_akhir, out='data/dil'):
     m['TARGET'] = ((m.JENISLAYANAN == 'PASKABAYAR') & (m.UMUR >= UMUR_PASKA)) | ((m.JENISLAYANAN == 'PRABAYAR') & (m.UMUR >= UMUR_PRA))
     m['CLUSTER'] = m.UMUR.map(cluster)
     m['MERK'] = m.MERK_METER_KWH.map(merk)
-    m['KELURAHAN'] = m.get('NAMA_KELURAHAN', pd.Series('', index=m.index)).fillna('').replace('', 'TIDAK TERCATAT')
-    m['KECAMATAN'] = m.get('NAMA_KECAMATAN', pd.Series('', index=m.index)).fillna('')
+    def ambil(nama):
+        # utamakan DIL akhir, bila kosong pakai DIL awal
+        akhir = m.get(nama + '_BARU', m.get(nama) if nama not in a.columns else None)
+        awal = m.get(nama) if nama in a.columns else None
+        kosong = pd.Series('', index=m.index)
+        x = (akhir if akhir is not None else kosong).fillna('').astype(str).str.strip()
+        if awal is not None:
+            x = x.where(x != '', awal.fillna('').astype(str).str.strip())
+        return x
+    m['KELURAHAN'] = ambil('NAMA_KELURAHAN').replace('', 'TIDAK TERCATAT')
+    m['KECAMATAN'] = ambil('NAMA_KECAMATAN')
     tg = m.TANGGAL_PASANG_RUBAH_APP_BARU
     awal_ts = pd.Timestamp(p_awal[:4] + '-' + p_awal[4:] + '-01')
     m['BULAN_GANTI'] = np.where((m.STATUS == 'Terganti') & (tg >= awal_ts - pd.Timedelta(days=31)), tg.dt.strftime('%Y-%m'), '')

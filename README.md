@@ -57,7 +57,7 @@ Bagian "Peta umur & DIL" membaca `data/dil/ringkasan.json` (rekap) dan `data/dil
 Untuk memperbarui dengan DIL bulan baru:
 ```
 pip install pandas python-calamine cryptography
-DIL_SANDI='kata-sandi' python tools/olah_dil.py DIL_SALDO_MASK_202506_54720_CIRACAS.xlsx DIL_SALDO_MASK_<bulan_baru>_54720_CIRACAS.xlsx
+DIL_SANDI='kata-sandi' python tools/olah_dil.py DIL_SALDO_MASK_202412_54720_CIRACAS.xlsx DIL_SALDO_MASK_<bulan_baru>_54720_CIRACAS.xlsx
 ```
 lalu commit folder `data/dil/` dan naikkan `DIL_VERSI` di `index.html`.
 Aturan: pelanggan AKTIF di DIL awal yang punya NOMOR_METER_KWH; terganti bila nomor meternya di DIL akhir berbeda.
