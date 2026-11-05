@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Realisasi Penggantian APP · UP3 Ciracas</title>
 <link rel="icon" type="image/png" href="favicon.png?v=2">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
@@ -215,6 +216,16 @@ body { background: var(--color-bg); }
 #dash-root .rp-chip { display: inline-flex; align-items: baseline; gap: 8px; padding: 7px 12px; border: 1px solid var(--color-border-line); border-radius: 999px; background: var(--color-panel); font-size: .85rem; color: var(--color-fg-muted); }
 #dash-root .rp-chip b { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--color-fg); }
 #dash-root .rp-chip.ok b { color: var(--color-ok); } #dash-root .rp-chip.warn b { color: var(--color-warn); } #dash-root .rp-chip.bad b { color: var(--color-bad); }
+#dash-root .rp-map { height: 460px; border-radius: 10px; overflow: hidden; border: 1px solid var(--color-border-line); background: #0b1d26; }
+#dash-root .leaflet-tooltip { background: var(--cds-surface-popover); color: var(--color-fg); border: 1px solid var(--cds-border); font-family: var(--font-anthropic-sans); }
+#dash-root .leaflet-container { font-family: var(--font-anthropic-sans); }
+#dash-root .rp-dl { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
+#dash-root .rp-dl label { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: .06em; }
+#dash-root .rp-dl select { font: inherit; text-transform: none; letter-spacing: 0; font-size: .9rem; color: var(--color-fg); background: #0b1d26; border: 1px solid var(--color-border-line); border-radius: 10px; padding: 8px 10px; min-width: 14rem; max-width: 100%; }
+#dash-root .rp-dl-act { display: flex; flex-wrap: wrap; gap: 8px; }
+#dash-root .rp-btn { padding: 9px 14px; font-weight: 600; font-size: .88rem; }
+#dash-root .rp-btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+#dash-root .rp-btn:disabled { opacity: .5; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -225,6 +236,7 @@ body { background: var(--color-bg); }
   <p class="rp-side-h">Menu</p>
   <nav class="rp-nav" aria-label="Bagian dashboard">
     <a href="#atas" data-nav="atas"><span aria-hidden="true">▦</span>Ringkasan</a>
+    <a href="#dil" data-nav="dil"><span aria-hidden="true">⌖</span>Peta umur &amp; DIL</a>
     <a href="#komposisi" data-nav="komposisi"><span aria-hidden="true">◎</span>Komposisi &amp; capaian</a>
     <a href="#kontrak" data-nav="kontrak"><span aria-hidden="true">☰</span>Capaian per kontrak</a>
     <a href="#umur" data-nav="umur"><span aria-hidden="true">⏳</span>Cluster umur</a>
@@ -270,6 +282,79 @@ body { background: var(--color-bg); }
     <div class="rp-kpi"><span class="lbl">Box combo</span><span class="val" data-draw="kpi" data-kat="BOX COMBO" data-source="rekap_kategori" data-field="realisasi">—</span><span class="sub" data-draw="kpi-box-sub" data-source="rekap_kategori">—</span></div>
   </section>
 
+
+  <section class="rp-sec" id="dil">
+    <h2>Peta umur meter &amp; realisasi DIL</h2>
+    <div class="rp-toolbar">
+      <p class="rp-cap" id="dil-periode">Memuat data DIL…</p>
+      <div class="rp-seg" role="group" aria-label="Jenis pelanggan (DIL)">
+        <button type="button" data-dj="Semua" aria-pressed="true">Paska + Prabayar</button>
+        <button type="button" data-dj="Paskabayar" aria-pressed="false">Paskabayar ≥ 15 th</button>
+        <button type="button" data-dj="Prabayar" aria-pressed="false">Prabayar ≥ 10 th</button>
+      </div>
+    </div>
+    <div class="rp-kpis" id="dil-kpi"></div>
+    <div class="rp-grid">
+      <div class="rp-card wide">
+        <div class="rp-ch"><h3>Peta sebaran meter target umur</h3><p class="rp-cap">Satu lingkaran = area ±550 m. Besar lingkaran = jumlah meter; warna merah → hijau = makin banyak yang sudah terganti.</p></div>
+        <div class="rp-seg" role="group" aria-label="Tampilkan di peta">
+          <button type="button" data-ds="belum" aria-pressed="true">Belum terganti</button>
+          <button type="button" data-ds="terganti" aria-pressed="false">Sudah terganti</button>
+          <button type="button" data-ds="semua" aria-pressed="false">Semua target</button>
+        </div>
+        <div id="dil-peta" class="rp-map" role="img" aria-label="Peta sebaran meter target umur"></div>
+      </div>
+      <div class="rp-card">
+        <div class="rp-ch"><h3>Umur meter seluruh pelanggan</h3><p class="rp-cap">★ = kelompok target (Paskabayar ≥ 15 th, Prabayar ≥ 10 th). Hijau = terganti, abu-abu = belum.</p></div>
+        <div class="rp-chart" id="dil-umur"></div>
+      </div>
+      <div class="rp-card">
+        <div class="rp-ch"><h3>Merk meter target</h3><p class="rp-cap">Dua belas merk terbanyak di kelompok target, terganti vs belum.</p></div>
+        <div class="rp-chart" id="dil-merk"></div>
+      </div>
+      <div class="rp-card wide">
+        <div class="rp-ch"><h3>Realisasi penggantian per bulan (DIL)</h3><p class="rp-cap">Bulan dari TANGGAL_PASANG_RUBAH_APP meter baru, untuk pelanggan yang nomor meternya berubah.</p></div>
+        <div class="rp-legend" id="dil-bulan-leg"></div>
+        <div class="rp-chart" id="dil-bulan"></div>
+      </div>
+      <div class="rp-card wide">
+        <div class="rp-ch"><h3>Sisa target per kelurahan</h3><p class="rp-cap">Kelurahan dari DIL akhir.</p></div>
+        <div class="rp-toolbar">
+          <input class="rp-search" id="dil-kel-cari" type="search" placeholder="Cari kelurahan…" aria-label="Cari kelurahan">
+          <div class="rp-seg" role="group" aria-label="Urutkan kelurahan">
+            <button type="button" data-ks="sisa" aria-pressed="true">Sisa terbanyak</button>
+            <button type="button" data-ks="persen" aria-pressed="false">% terendah</button>
+            <button type="button" data-ks="nama" aria-pressed="false">Nama</button>
+          </div>
+        </div>
+        <div class="rp-tablebox">
+          <table class="rp-table" id="dil-kel">
+            <thead><tr><th class="l">Kelurahan</th><th class="l">Kecamatan</th><th>Target paska</th><th>Paska terganti</th><th>Target prabayar</th><th>Prabayar terganti</th><th>Sisa</th><th>% terganti</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="rp-card wide" id="dil-unduh">
+        <div class="rp-ch"><h3>Unduh data detail</h3><p class="rp-cap">Per pelanggan: IDPEL, tarif, daya, kelurahan, gardu, merk/tahun/nomor meter lama, status, nomor meter baru. Tanpa nama, alamat, dan koordinat.</p></div>
+        <div class="rp-dl">
+          <label>Kategori<select id="dil-dl-kat">
+            <option value="target_belum">Target umur · belum terganti</option>
+            <option value="target_terganti">Target umur · sudah terganti</option>
+            <option value="target_semua">Semua target umur</option>
+            <option value="terganti_semua">Semua meter terganti (semua umur)</option>
+          </select></label>
+          <label>Jenis<select id="dil-dl-jenis"><option value="Semua">Paska + Prabayar</option><option value="Paskabayar">Paskabayar</option><option value="Prabayar">Prabayar</option></select></label>
+          <label>Kelurahan<select id="dil-dl-kel"><option value="SEMUA">Semua kelurahan</option></select></label>
+          <div class="rp-dl-act">
+            <button type="button" class="rp-btn" id="dil-dl-siap">Hitung baris</button>
+            <button type="button" class="rp-btn primary" data-fmt="xlsx">Unduh Excel</button>
+            <button type="button" class="rp-btn" data-fmt="csv">Unduh CSV</button>
+          </div>
+        </div>
+        <p class="rp-cap" id="dil-dl-info">Data detail (±1,5 MB) diambil saat Anda menekan tombol.</p>
+      </div>
+    </div>
+  </section>
 
   <section class="rp-sec" id="komposisi">
     <h2>Komposisi dan capaian</h2>
@@ -488,11 +573,14 @@ body { background: var(--color-bg); }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="config.js?v=20261105-10"></script>
-<script src="sumber.js?v=20261105-10"></script>
-<script src="app.js?v=20261105-10"></script>
-<script src="rekap.js?v=20261105-10"></script>
-<script src="gambar.js?v=20261105-10"></script>
-<script src="tata.js?v=20261105-10"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="config.js?v=20261105-11"></script>
+<script src="sumber.js?v=20261105-11"></script>
+<script src="app.js?v=20261105-11"></script>
+<script src="rekap.js?v=20261105-11"></script>
+<script src="gambar.js?v=20261105-11"></script>
+<script src="tata.js?v=20261105-11"></script>
+<script>window.DIL_VERSI = "202506-202609-1";</script>
+<script src="dil.js?v=20261105-11"></script>
 </body>
 </html>
