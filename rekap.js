@@ -124,11 +124,13 @@
         if (r.jenis !== 'Meter' || !GANTI.includes(r.kategori)) return;
         const m = merk(r.merk_lama);
         keys(c).forEach((k) => {
-          const a = acc[k + '|' + m] = acc[k + '|' + m] || { kontraktor: k, merk: m, jumlah: 0, n: 0, t: 0 };
+          const a = acc[k + '|' + m] = acc[k + '|' + m] || { kontraktor: k, merk: m, jumlah: 0, n: 0, t: 0, lt10: 0, a10: 0, ge15: 0, na: 0, tertua: null };
           a.jumlah += 1; if (r.usia != null && r.usia !== '') { a.n += 1; a.t += Number(r.usia); }
+          if (r.cluster_usia === CL[0]) a.lt10 += 1; else if (r.cluster_usia === CL[1]) a.a10 += 1; else if (r.cluster_usia === CL[2]) a.ge15 += 1; else a.na += 1;
+          if (r.tahun_meter && (a.tertua == null || Number(r.tahun_meter) < a.tertua)) a.tertua = Number(r.tahun_meter);
         });
       });
-      return Object.values(acc).map((a) => ({ kontraktor: a.kontraktor, merk: a.merk, jumlah: a.jumlah, rata_usia: a.n ? Math.round((a.t / a.n) * 10) / 10 : null })).sort((a, b) => b.jumlah - a.jumlah);
+      return Object.values(acc).map((a) => ({ kontraktor: a.kontraktor, merk: a.merk, jumlah: a.jumlah, usia_lt10: a.lt10, usia_10_15: a.a10, usia_ge15: a.ge15, usia_na: a.na, tahun_tertua: a.tertua, rata_usia: a.n ? Math.round((a.t / a.n) * 10) / 10 : null })).sort((a, b) => b.jumlah - a.jumlah);
     },
   });
 

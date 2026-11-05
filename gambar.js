@@ -290,17 +290,46 @@
     });
   });
 
+  const merkRows = () => rowsOf('rekap_merk').filter((r) => r.kontraktor === K());
+  const mUrut = { jumlah: (a, b) => b.jumlah - a.jumlah, tua: (a, b) => (b.usia_ge15 / b.jumlah) - (a.usia_ge15 / a.jumlah) || b.jumlah - a.jumlah };
+  const MU = () => dash.params().mu || 'jumlah';
+  dash.draw('leg-merk', (el) => { if (!ok('rekap_merk')) { el.replaceChildren(); return; } legend(el, CL.map((c, i) => [clColor(i), 1, c])); });
   dash.draw('ch-merk', (el) => {
     const st = dash.data('rekap_merk').status;
     if (st === 'error') { failed(el); return; }
     if (st !== 'ok') { memuat(el); return; }
-    const rows = rowsOf('rekap_merk').filter((r) => r.kontraktor === K()).slice(0, 12);
+    const rows = merkRows().filter((r) => r.merk !== 'Tidak terbaca').sort(mUrut.jumlah).slice(0, 12).sort(mUrut[MU()]);
     if (!rows.length) { el.replaceChildren(); const p = document.createElement('p'); p.className = 'rp-cap'; p.textContent = 'Belum ada data merk.'; el.append(p); return; }
-    const cats = rows.map((r) => ({ label: r.merk, total: r.jumlah, rata: r.rata_usia, end: nf.format(r.jumlah) + (r.rata_usia != null ? ' · ' + String(r.rata_usia).replace('.', ',') + ' th' : '') }));
-    hstack(el, cats, (c) => [{ v: c.total, color: dash.colors[1], op: 1 }], {
-      tip: (c) => [[dash.colors[1], 1, 'Jumlah', nf.format(c.total)], [null, 1, 'Rata-rata umur', c.rata == null ? '—' : String(c.rata).replace('.', ',') + ' tahun']],
+    const cats = rows.map((r) => ({ label: r.merk, rs: [r.usia_lt10, r.usia_10_15, r.usia_ge15, r.usia_na], total: r.jumlah, rata: r.rata_usia, tertua: r.tahun_tertua,
+      end: nf.format(r.jumlah) + ' · ' + pf.format(r.usia_ge15 / r.jumlah) + ' ≥15 th' }));
+    hstack(el, cats, (c) => c.rs.map((v, i) => ({ v, color: clColor(i), op: 1 })), {
+      tip: (c) => [...c.rs.map((v, i) => [clColor(i), 1, CL[i], nf.format(v) + ' (' + pf.format(c.total ? v / c.total : 0) + ')']), [null, 1, 'Rata-rata umur', c.rata == null ? '—' : String(c.rata).replace('.', ',') + ' tahun'], [null, 1, 'Tahun pembuatan tertua', c.tertua || '—']],
     });
   });
+  dash.draw('tbl-merk', (tb) => {
+    tb.replaceChildren();
+    if (!ok('rekap_merk')) return;
+    const rows = merkRows().sort(mUrut[MU()]);
+    rows.forEach((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = encodeURIComponent(r.kontraktor) + ',' + encodeURIComponent(r.merk);
+      const td = (t, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = t; tr.append(c); return c; };
+      td(r.merk, 'l');
+      td(nf.format(r.jumlah));
+      [r.usia_lt10, r.usia_10_15, r.usia_ge15, r.usia_na].forEach((v, i) => {
+        const p = r.jumlah ? v / r.jumlah : 0;
+        const c = td(v ? nf.format(v) + ' · ' + pf.format(p) : '—', 'heat');
+        if (v) c.style.background = 'color-mix(in srgb, var(--u' + (i + 1) + ') ' + Math.round(8 + p * 62) + '%, transparent)';
+      });
+      td(r.rata_usia == null ? '—' : String(r.rata_usia).replace('.', ','));
+      td(r.tahun_tertua ? String(r.tahun_tertua) : '—');
+      tb.append(tr);
+    });
+  });
+  dash.onData(() => {
+    document.querySelectorAll('#dash-root [data-mu]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mu === MU())));
+  });
+  document.querySelectorAll('#dash-root [data-mu]').forEach((b) => b.addEventListener('click', () => dash.setParams({ mu: b.dataset.mu })));
   // ---------- donut ----------
   const donut = (el, items, centerN, centerL) => {
     el.replaceChildren();
