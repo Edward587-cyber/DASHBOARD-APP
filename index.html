@@ -229,6 +229,7 @@ body { background: var(--color-bg); }
 #dash-root .rp-btn:disabled { opacity: .5; cursor: not-allowed; }
 #dash-root .rp-pies { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 #dash-root .rp-pie { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid var(--color-border-line); border-radius: 12px; background: #0b1d26; min-width: 0; }
+#dash-root .rp-pie[hidden] { display: none; }
 #dash-root .rp-pie h4 { margin: 0; font-size: .95rem; font-weight: 700; }
 #dash-root .rp-pie .rp-donut { min-height: 200px; gap: 14px; }
 @media (max-width: 900px) { #dash-root .rp-pies { grid-template-columns: minmax(0, 1fr); } }
@@ -736,6 +737,6 @@ body { background: var(--color-bg); }
 <script src="tata.js?v=20261105-17"></script>
 <script>window.DIL_VERSI = "202412-202609-1";</script>
 <script src="materi.js?v=20261105-20" defer></script>
-<script src="dil.js?v=20261105-18"></script>
+<script src="dil.js?v=20261105-21"></script>
 </body>
 </html>
