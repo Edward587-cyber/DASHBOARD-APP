@@ -12,6 +12,15 @@
   const FLD = ['usia_lt5', 'usia_5_10', 'usia_10_15', 'usia_ge15', 'usia_na'];
   const fieldOf = (cl) => FLD[Math.max(0, CL.indexOf(cl))] || 'usia_na';
   const zero = () => Object.fromEntries(FLD.map((f) => [f, 0]));
+  const KNOWN = ['SMART', 'ITRON', 'HEXING', 'MELCOINDA', 'METBELOSA', 'WASION', 'OTHO', 'SANXING', 'LANDIS', 'GLOMET', 'EDMI', 'SCHLUMBERGER', 'FUJI', 'STAR', 'INHEMETER', 'HOLLEY', 'KAIFA', 'LINYANG', 'CONLOG', 'ACTARIS', 'ELSTER', 'MITSUBISHI', 'MIZUMI', 'BRANSTEN', 'TRIO', 'SMAR'];
+  const merk = (m) => {
+    const t = String(m || '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!t || /^\d+$/.test(t.replace(/ /g, ''))) return 'Tidak terbaca';
+    const flat = t.replace(/ /g, '');
+    const hit = KNOWN.find((k) => flat.startsWith(k));
+    if (hit) return hit === 'SMART' || hit === 'SMAR' ? 'SMART METER' : hit;
+    return t.split(' ')[0];
+  };
   const semua = (c) => 'SEMUA-' + c.tahun;
   const keys = (c) => [c.id, semua(c)];
   const each = (ctx, fn) => ctx.list.forEach((c) => (ctx.src[c.id] || []).forEach((r) => fn(c, r)));
@@ -113,15 +122,6 @@
   dash.calc('rekap_merk', {
     title: 'Merk meter lama',
     fn: (ctx) => {
-      const KNOWN = ['SMART', 'ITRON', 'HEXING', 'MELCOINDA', 'METBELOSA', 'WASION', 'OTHO', 'SANXING', 'LANDIS', 'GLOMET', 'EDMI', 'SCHLUMBERGER', 'FUJI', 'STAR', 'INHEMETER', 'HOLLEY', 'KAIFA', 'LINYANG', 'CONLOG', 'ACTARIS', 'ELSTER', 'MITSUBISHI', 'MIZUMI', 'BRANSTEN', 'TRIO', 'SMAR'];
-      const merk = (m) => {
-        const t = String(m || '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
-        if (!t || /^\d+$/.test(t.replace(/ /g, ''))) return 'Tidak terbaca';
-        const flat = t.replace(/ /g, '');
-        const hit = KNOWN.find((k) => flat.startsWith(k));
-        if (hit) return hit === 'SMART' || hit === 'SMAR' ? 'SMART METER' : hit;
-        return t.split(' ')[0];
-      };
       const acc = {};
       each(ctx, (c, r) => {
         if (r.jenis !== 'Meter' || !GANTI.includes(r.kategori)) return;
@@ -134,6 +134,52 @@
         });
       });
       return Object.values(acc).map((a) => ({ kontraktor: a.kontraktor, merk: a.merk, jumlah: a.jumlah, ...Object.fromEntries(FLD.map((f) => [f, a[f]])), tahun_tertua: a.tertua, rata_usia: a.n ? Math.round((a.t / a.n) * 10) / 10 : null })).sort((a, b) => b.jumlah - a.jumlah);
+    },
+  });
+
+  dash.calc('rekap_penyebab', {
+    title: 'Penyebab per umur & jenis',
+    fn: (ctx) => {
+      const COL = { 'PASKA 1 PHASA': 'paska_1p', 'PRABAYAR 1 PHASA': 'prabayar_1p', 'PRABAYAR 3 PHASA': 'prabayar_3p' };
+      const acc = {};
+      each(ctx, (c, r) => {
+        if (r.jenis !== 'Meter' || !COL[r.kategori]) return;
+        const m = merk(r.merk_lama);
+        keys(c).forEach((k) => [r.cluster_usia, 'Semua umur'].forEach((cl) => {
+          const key = k + '|' + cl + '|' + r.alasan;
+          const a = acc[key] = acc[key] || { kontraktor: k, cluster_usia: cl, alasan: r.alasan, kelompok_alasan: r.kelompok_alasan, paska_1p: 0, prabayar_1p: 0, prabayar_3p: 0, n: 0, t: 0, mp: {}, mb: {} };
+          a[COL[r.kategori]] += 1;
+          if (r.usia != null && r.usia !== '') { a.n += 1; a.t += Number(r.usia); }
+          const mm = r.kategori === 'PASKA 1 PHASA' ? a.mp : a.mb;
+          mm[m] = (mm[m] || 0) + 1;
+        }));
+      });
+      const top = (o) => { const e = Object.entries(o).sort((x, y) => y[1] - x[1])[0]; return e ? e[0] : ''; };
+      return Object.values(acc).map((a) => ({
+        kontraktor: a.kontraktor, cluster_usia: a.cluster_usia, alasan: a.alasan, kelompok_alasan: a.kelompok_alasan,
+        paska_1p: a.paska_1p, prabayar_1p: a.prabayar_1p, prabayar_3p: a.prabayar_3p,
+        paskabayar: a.paska_1p, prabayar: a.prabayar_1p + a.prabayar_3p, jumlah: a.paska_1p + a.prabayar_1p + a.prabayar_3p,
+        merk_teratas_paska: top(a.mp), merk_teratas_prabayar: top(a.mb),
+        rata_usia: a.n ? Math.round((a.t / a.n) * 10) / 10 : null,
+      })).sort((x, y) => y.jumlah - x.jumlah);
+    },
+  });
+
+  dash.calc('rekap_penyebab_merk', {
+    title: 'Merk per umur & jenis',
+    fn: (ctx) => {
+      const acc = {};
+      each(ctx, (c, r) => {
+        if (r.jenis !== 'Meter' || !GANTI.includes(r.kategori)) return;
+        const m = merk(r.merk_lama);
+        const jn = r.kategori === 'PASKA 1 PHASA' ? 'paskabayar' : 'prabayar';
+        keys(c).forEach((k) => [r.cluster_usia, 'Semua umur'].forEach((cl) => {
+          const key = k + '|' + cl + '|' + m;
+          const a = acc[key] = acc[key] || { kontraktor: k, cluster_usia: cl, merk: m, paskabayar: 0, prabayar: 0 };
+          a[jn] += 1;
+        }));
+      });
+      return Object.values(acc).map((a) => ({ ...a, jumlah: a.paskabayar + a.prabayar })).sort((x, y) => y.jumlah - x.jumlah);
     },
   });
 
