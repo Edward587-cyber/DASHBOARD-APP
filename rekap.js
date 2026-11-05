@@ -166,6 +166,20 @@
     },
   });
 
+  dash.calc('rekap_harian', {
+    title: 'Realisasi per tanggal per kontrak',
+    fn: (ctx) => {
+      const acc = {};
+      each(ctx, (c, r) => {
+        if (r.jenis !== 'Meter' || !GANTI.includes(r.kategori) || !r.tanggal) return;
+        const key = c.id + '|' + r.tanggal + '|' + r.kategori;
+        acc[key] = acc[key] || { kontraktor: c.id, tahun: c.tahun, tanggal: r.tanggal, kategori: r.kategori, jumlah: 0 };
+        acc[key].jumlah += 1;
+      });
+      return Object.values(acc).sort((a, b) => (a.tanggal < b.tanggal ? -1 : 1));
+    },
+  });
+
   dash.calc('rekap_merk', {
     title: 'Merk meter lama',
     fn: (ctx) => {
