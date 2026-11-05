@@ -23,6 +23,13 @@
     d.append(dot, document.createTextNode('Gagal memuat'));
     el.append(d);
   };
+  const memuat = (el) => {
+    el.replaceChildren();
+    const d = document.createElement('div'); d.className = 'rp-loading';
+    const s = document.createElement('span'); s.className = 'spin';
+    d.append(s, document.createTextNode('Memuat data dari Google Sheets…'));
+    el.append(d);
+  };
   const capRow = () => rowsOf('capaian').find((r) => r.kontraktor === K());
 
   // filter tombol
@@ -200,7 +207,7 @@
   dash.draw('ch-usia', (el) => {
     const st = dash.data('rekap_usia').status;
     if (st === 'error') { failed(el); return; }
-    if (st !== 'ok') { el.replaceChildren(); return; }
+    if (st !== 'ok') { memuat(el); return; }
     const rows = rowsOf('rekap_usia').filter((r) => r.kontraktor === K());
     const cats = KATS.map((kat) => {
       const rs = CL.map((c) => (rows.find((r) => r.kategori === kat && r.cluster_usia === c) || { jumlah: 0 }).jumlah);
@@ -216,7 +223,7 @@
   dash.draw('ch-alasan', (el) => {
     const st = dash.data('rekap_alasan').status;
     if (st === 'error') { failed(el); return; }
-    if (st !== 'ok') { el.replaceChildren(); return; }
+    if (st !== 'ok') { memuat(el); return; }
     const rows = rowsOf('rekap_alasan').filter((r) => r.kontraktor === K() && r.kategori === KA()).sort((a, b) => b.jumlah - a.jumlah);
     const tot = d3.sum(rows, (r) => r.jumlah);
     const cats = rows.map((r) => ({ label: r.kelompok_alasan, rs: [r.usia_lt10, r.usia_10_15, r.usia_ge15, r.usia_na], total: r.jumlah, end: nf.format(r.jumlah) + ' · ' + pf.format(tot ? r.jumlah / tot : 0) }));
@@ -246,7 +253,7 @@
   dash.draw('ch-bulan', (el) => {
     const st = dash.data('rekap_bulan').status;
     if (st === 'error') { failed(el); return; }
-    if (st !== 'ok') { el.replaceChildren(); return; }
+    if (st !== 'ok') { memuat(el); return; }
     el.replaceChildren();
     const now = bulanNow();
     const rows = rowsOf('rekap_bulan').filter((r) => r.kontraktor === K() && r.bulan >= '2025-01' && r.bulan <= now);
@@ -285,7 +292,7 @@
   dash.draw('ch-merk', (el) => {
     const st = dash.data('rekap_merk').status;
     if (st === 'error') { failed(el); return; }
-    if (st !== 'ok') { el.replaceChildren(); return; }
+    if (st !== 'ok') { memuat(el); return; }
     const rows = rowsOf('rekap_merk').filter((r) => r.kontraktor === K()).slice(0, 12);
     if (!rows.length) { el.replaceChildren(); const p = document.createElement('p'); p.className = 'rp-cap'; p.textContent = 'Belum ada data merk.'; el.append(p); return; }
     const cats = rows.map((r) => ({ label: r.merk, total: r.jumlah, rata: r.rata_usia, end: nf.format(r.jumlah) + (r.rata_usia != null ? ' · ' + String(r.rata_usia).replace('.', ',') + ' th' : '') }));
@@ -326,7 +333,7 @@
   const guard = (el, id) => {
     const st = dash.data(id).status;
     if (st === 'error') { failed(el); return false; }
-    if (st !== 'ok') { el.replaceChildren(); return false; }
+    if (st !== 'ok') { memuat(el); return false; }
     return true;
   };
 
