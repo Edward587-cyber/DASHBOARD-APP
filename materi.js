@@ -209,7 +209,7 @@
     const rows = (dash.data('capaian').status === 'ok' ? dash.data('capaian').data : []).filter((r) => Number(r.tahun) === th);
     const kk = rows.filter((r) => !String(r.kontraktor).startsWith('SEMUA')).sort((a, b) => String(a.nomor_kontrak).localeCompare(String(b.nomor_kontrak)));
     const all = rows.find((r) => String(r.kontraktor).startsWith('SEMUA')) || {};
-    const body = kk.map((r) => ({ cells: [r.nomor_kontrak, r.pelaksana, r.tanggal_akhir_awal || r.tanggal_akhir, nf.format(r.target_kwh), nf.format(r.realisasi_kwh), pf(r.persen), { hl: 1, t: pf(r.persen_rupiah) }, (r.tagihan_terakhir || '—').replace(/^Tagihan\s+/i, '').toUpperCase()] }));
+    const body = kk.map((r) => ({ cells: [r.nomor_kontrak, r.pelaksana, r.tanggal_akhir_awal || r.tanggal_akhir, nf.format(r.target_kwh), nf.format(r.realisasi_kwh), pf(r.persen), { hl: 1, t: pf(r.persen_rupiah) }, (r.status_pembayaran || r.tagihan_terakhir || '—').replace(/^Tagihan\s+/i, '').toUpperCase()] }));
     body.push({ cls: 'tot', cells: ['', 'Total Penggantian kWh meter', '', nf.format(all.target_kwh || 0), nf.format(all.realisasi_kwh || 0), pf(all.persen), '', ''] });
     const realRp = num(K.realisasiRp) != null ? num(K.realisasiRp) : (all.nilai_realisasi_ppn || 0);
     const fotos = h('div', { class: 'kt-foto' }, ['k1', 'k2'].map((k) => (FOTO[k] ? h('img', { src: FOTO[k], alt: 'Foto' }) : h('div', { class: 'kosong' }, 'Foto (unggah di form)'))));
@@ -266,7 +266,7 @@
     }
     if (id === 'kontrak') {
       const K = M.kontrak;
-      box.append(h('p', { class: 'mnote' }, 'Tabel kontrak diisi otomatis dari dashboard (target RAB, realisasi pemasangan, % rupiah = realisasi RAB ÷ nilai RAB, status tagihan dari LIST TAGIHAN) untuk tahun yang dipilih di menu samping.'));
+      box.append(h('p', { class: 'mnote' }, 'Tabel kontrak diisi otomatis dari dashboard (target RAB, realisasi pemasangan, % rupiah = jumlah biaya realisasi ÷ jumlah biaya RAB, status pembayaran dari PROGRES PEK) untuk tahun yang dipilih di menu samping.'));
       box.append(h('div', { class: 'mrow' }, fld('No SKKI', inp(K.skki, (v) => { K.skki = v; })), fld('Tanggal SKKI', inp(K.tanggal, (v) => { K.tanggal = v; }))));
       box.append(h('div', { class: 'mrow' }, fld('Target 1 fasa', inp(K.t1f, (v) => { K.t1f = num(v) || 0; })), fld('Target 3 fasa prabayar', inp(K.t3pra, (v) => { K.t3pra = num(v) || 0; })), fld('Target 3 fasa paskabayar', inp(K.t3pas, (v) => { K.t3pas = num(v) || 0; }))));
       box.append(h('div', { class: 'mrow' }, fld('Nilai jasa (Rp)', inp(K.nilaiJasa, (v) => { K.nilaiJasa = num(v) || 0; })), fld('Realisasi Rp (kosong = otomatis dari RAB)', inp(K.realisasiRp, (v) => { K.realisasiRp = v; }))));

@@ -132,7 +132,7 @@
 
   const parseRab = (rows) => {
     const num = (v) => { const d = String(v ?? '').replace(/[^0-9]/g, ''); return d ? Number(d) : 0; };
-    const out = { volume_1p: 0, volume_3p: 0, volume_apkt_1p: 0, rab_realisasi_1p: 0, rab_realisasi_3p: 0, nilai_rab_ppn: 0, nilai_realisasi_ppn: 0 };
+    const out = { volume_1p: 0, volume_3p: 0, volume_apkt_1p: 0, rab_realisasi_1p: 0, rab_realisasi_3p: 0, nilai_rab_ppn: 0, nilai_realisasi_ppn: 0, jumlah_biaya: 0, jumlah_biaya_real: 0 };
     let seksi = '';
     for (const r of rows) {
       const t = (r || []).join(' ').replace(/\s+/g, ' ').toUpperCase().trim();
@@ -142,6 +142,7 @@
         if (seksi === 'apkt') out.volume_apkt_1p += num(r[4]);
         else if (!out.volume_1p) { out.volume_1p = num(r[4]); out.rab_realisasi_1p = num(r[8]); }
       } else if (/MENYETEL.*3 PHASA/.test(t) && !out.volume_3p) { out.volume_3p = num(r[4]); out.rab_realisasi_3p = num(r[8]); }
+      else if (/JUMLAH BIAYA/.test(t) && !out.jumlah_biaya) { out.jumlah_biaya = num(r[7]); out.jumlah_biaya_real = num(r[9]); }
       else if (/TOTAL \+ PPN/.test(t) && !out.nilai_rab_ppn) { out.nilai_rab_ppn = num(r[7]); out.nilai_realisasi_ppn = num(r[9]); }
     }
     out.target_kwh = out.volume_1p + out.volume_3p;
@@ -203,9 +204,20 @@
     return { rows, rab: iRab >= 0 ? parseRab(vals[iRab]) : [{}], sheets: sheets.map((x) => x.title) };
   }
 
+  // Status pembayaran terakhir dari sheet PROGRES PEK (tabel KONTRAK MURNI), digabung ke data kontrak.
+  const parseProgres = (rows) => {
+    const o = {};
+    (rows || []).forEach((r) => {
+      const no = String((r || [])[0] || '').trim();
+      if (/^\d{3,4}\.[A-Za-z]+\//.test(no)) o[no] = String(r[9] || '').trim();
+    });
+    return o;
+  };
   async function bacaTagihan(key, id, range) {
-    const [v] = await batch(key, id, [range]);
-    return parseTagihan(v);
+    let v, p = [];
+    try { [v, p] = await batch(key, id, [range, "'PROGRES PEK'!A1:K150"]); } catch (e) { [v] = await batch(key, id, [range]); }
+    const st = parseProgres(p);
+    return parseTagihan(v).map((k) => ({ ...k, status_pembayaran: st[k.nomor_kontrak] || '' }));
   }
 
   window.SUMBER = { bacaPelaksana, bacaTagihan };
