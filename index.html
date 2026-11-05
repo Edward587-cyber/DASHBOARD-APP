@@ -211,6 +211,10 @@ body { background: var(--color-bg); }
 #dash-root .rp-kpis.rp-kpis3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 900px) { #dash-root .rp-kpis.rp-kpis3 { grid-template-columns: minmax(0, 1fr); } }
 #dash-root .rp-kpis3 .rp-kpi.on { border-color: var(--accent); }
+#dash-root .rp-chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 2.4rem; }
+#dash-root .rp-chip { display: inline-flex; align-items: baseline; gap: 8px; padding: 7px 12px; border: 1px solid var(--color-border-line); border-radius: 999px; background: var(--color-panel); font-size: .85rem; color: var(--color-fg-muted); }
+#dash-root .rp-chip b { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--color-fg); }
+#dash-root .rp-chip.ok b { color: var(--color-ok); } #dash-root .rp-chip.warn b { color: var(--color-warn); } #dash-root .rp-chip.bad b { color: var(--color-bad); }
 </style>
 </head>
 <body>
@@ -244,7 +248,7 @@ body { background: var(--color-bg); }
     <div class="rp-head-l">
       <p class="rp-eyebrow">PLN UP3 Ciracas / Dal APP</p>
       <h1>Realisasi Penggantian APP <span id="judul-tahun">—</span></h1>
-      <p class="rp-take">Penggantian kWh meter mencapai <b data-draw="t-real" data-source="capaian" data-field="realisasi_kwh">—</b> pelanggan dari target RAB <b data-draw="t-target" data-source="capaian" data-field="target_kwh">—</b> (<b data-draw="t-pct" data-source="capaian">—</b>). Meter lama berumur 15 tahun atau lebih mencapai <b data-draw="t-tua" data-source="rekap_usia">—</b> dari meter yang diganti, dan alasan terbanyak adalah <b data-draw="t-alasan" data-source="rekap_alasan" data-field="kelompok_alasan">—</b>.</p>
+      <div class="rp-chips" data-draw="t-chips" data-source="capaian rekap_usia rekap_alasan"></div>
     </div>
     <div class="rp-head-r">
       <span class="rp-pill" id="status-muat">Memuat…</span>
@@ -485,11 +489,11 @@ body { background: var(--color-bg); }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="config.js?v=20261105-8"></script>
-<script src="sumber.js?v=20261105-8"></script>
-<script src="app.js?v=20261105-8"></script>
-<script src="rekap.js?v=20261105-8"></script>
-<script src="gambar.js?v=20261105-8"></script>
-<script src="tata.js?v=20261105-8"></script>
+<script src="config.js?v=20261105-9"></script>
+<script src="sumber.js?v=20261105-9"></script>
+<script src="app.js?v=20261105-9"></script>
+<script src="rekap.js?v=20261105-9"></script>
+<script src="gambar.js?v=20261105-9"></script>
+<script src="tata.js?v=20261105-9"></script>
 </body>
 </html>

@@ -46,21 +46,20 @@
   document.querySelectorAll('#cari-alasan').forEach((inp) => inp.addEventListener('input', () => { cari = inp.value.trim().toUpperCase(); dash.draw('tbl-alasan'); }));
 
   // kalimat ringkasan
-  dash.draw('t-real', (el) => { const r = capRow(); el.dataset.where = 'kontraktor=' + esc(K()); el.textContent = r ? nf.format(r.realisasi_kwh) : '—'; });
-  dash.draw('t-target', (el) => { const r = capRow(); el.dataset.where = 'kontraktor=' + esc(K()); el.textContent = r ? nf.format(r.target_kwh) : '—'; });
-  dash.draw('t-pct', (el) => { const r = capRow(); el.textContent = r && r.persen != null ? pf.format(r.persen) : '—'; });
-  dash.draw('t-tua', (el) => {
-    const rows = rowsOf('rekap_usia').filter((r) => r.kontraktor === K() && r.kategori === 'PENGGANTIAN KWH');
-    const tot = d3.sum(rows, (r) => r.jumlah);
-    const tua = d3.sum(rows.filter((r) => r.cluster_usia === '≥ 15 tahun'), (r) => r.jumlah);
-    el.textContent = tot ? nf.format(tua) + ' (' + pf.format(tua / tot) + ')' : '—';
+  dash.draw('t-chips', (el) => {
+    el.replaceChildren();
+    if (!['capaian', 'rekap_usia', 'rekap_alasan'].every(ok)) return;
+    const chip = (lbl, val, cls) => { const s = document.createElement('span'); s.className = 'rp-chip' + (cls ? ' ' + cls : ''); s.append(document.createTextNode(lbl)); const b = document.createElement('b'); b.textContent = val; s.append(b); el.append(s); };
+    const r = capRow();
+    if (r && r.persen != null) chip('Capaian target', pf.format(r.persen), r.persen >= 1 ? 'ok' : r.persen >= 0.9 ? 'warn' : 'bad');
+    const u = rowsOf('rekap_usia').filter((x) => x.kontraktor === K() && x.kategori === 'PENGGANTIAN KWH');
+    const tot = d3.sum(u, (x) => x.jumlah);
+    const of = (c) => d3.sum(u.filter((x) => x.cluster_usia === c), (x) => x.jumlah);
+    if (tot) { chip('Meter ≥ 15 tahun', pf.format(of('≥ 15 tahun') / tot)); chip('Meter < 5 tahun', pf.format(of('< 5 tahun') / tot)); }
+    const al = rowsOf('rekap_alasan').filter((x) => x.kontraktor === K() && x.kategori === 'PENGGANTIAN KWH').sort((a, b) => b.jumlah - a.jumlah);
+    const ta = d3.sum(al, (x) => x.jumlah);
+    if (al[0] && ta) chip(al[0].kelompok_alasan, pf.format(al[0].jumlah / ta));
   });
-  dash.draw('t-alasan', (el) => {
-    const top = rowsOf('rekap_alasan').filter((r) => r.kontraktor === K() && r.kategori === 'PENGGANTIAN KWH').sort((a, b) => b.jumlah - a.jumlah)[0];
-    if (top) el.dataset.where = 'kontraktor=' + esc(K()) + '&kategori=PENGGANTIAN%20KWH&kelompok_alasan=' + esc(top.kelompok_alasan);
-    el.textContent = top ? top.kelompok_alasan.toLowerCase() : '—';
-  });
-
   // KPI
   dash.draw('kpi-total', (el) => { const r = capRow(); el.dataset.where = 'kontraktor=' + esc(K()); el.textContent = r ? nf.format(r.realisasi_kwh) : '—'; });
   dash.draw('kpi-bar', (el) => {
