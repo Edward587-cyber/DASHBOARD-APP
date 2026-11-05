@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Realisasi Penggantian APP 2026 · UP3 Ciracas</title>
+<title>Realisasi Penggantian APP · UP3 Ciracas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
@@ -198,6 +198,13 @@ body { background: var(--color-bg); }
 #dash-root .rp-loading .spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--color-border-line); border-top-color: var(--accent); animation: rpspin .9s linear infinite; }
 @keyframes rpspin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { #dash-root .rp-loading .spin { animation: none; } }
+.rp-years { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--color-border-line); border-radius: 12px; overflow: hidden; margin: 0 2px; }
+.rp-years button { font: inherit; font-family: var(--font-mono); font-weight: 700; flex: 1 1 0; min-width: 4.5rem; padding: 10px 12px; border: 0; border-right: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg); cursor: pointer; }
+.rp-years button:last-child { border-right: 0; }
+.rp-years button:hover { background: rgba(255,255,255,.04); }
+.rp-years button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.rp-side-h span { color: var(--accent); }
+@media (max-width: 900px) { .rp-years { flex-wrap: nowrap; overflow-x: auto; } .rp-years button { flex: none; } }
 </style>
 </head>
 <body>
@@ -215,14 +222,10 @@ body { background: var(--color-bg); }
     <a href="#tren" data-nav="tren"><span aria-hidden="true">↗</span>Tren &amp; merk</a>
     <a href="#catatan" data-nav="catatan"><span aria-hidden="true">Σ</span>Catatan</a>
   </nav>
-  <p class="rp-side-h">Kontrak</p>
-  <div class="rp-klist" role="group" aria-label="Pilih kontrak">
-    <button type="button" data-k="SEMUA" aria-pressed="true"><b>Semua kontrak</b><small>Lot 1 – 4</small></button>
-    <button type="button" data-k="DHANA" aria-pressed="false"><b>Dhana Julaga Ekada</b><small>Lot 1 · 0034.Pj</small></button>
-    <button type="button" data-k="HAFIZ" aria-pressed="false"><b>Hafiz Energi Tama</b><small>Lot 2 · 0035.Pj</small></button>
-    <button type="button" data-k="ANGGADA" aria-pressed="false"><b>Anggada Perkasa Tehnik</b><small>Lot 3 · 0032.Pj</small></button>
-    <button type="button" data-k="JATI" aria-pressed="false"><b>Jati Teknik</b><small>Lot 4 · 0033.Pj</small></button>
-  </div>
+  <p class="rp-side-h">Tahun kontrak</p>
+  <div class="rp-years" id="pilih-tahun" role="group" aria-label="Pilih tahun kontrak"></div>
+  <p class="rp-side-h">Kontrak <span id="side-tahun"></span></p>
+  <div class="rp-klist" id="pilih-kontrak" role="group" aria-label="Pilih kontrak"></div>
 </aside>
 <main class="rp-main">
 
@@ -233,7 +236,7 @@ body { background: var(--color-bg); }
   <header class="rp-head" id="atas">
     <div class="rp-head-l">
       <p class="rp-eyebrow">PLN UP3 Ciracas / Dal APP</p>
-      <h1>Realisasi Penggantian APP 2026</h1>
+      <h1>Realisasi Penggantian APP <span id="judul-tahun">—</span></h1>
       <p class="rp-take">Penggantian kWh meter mencapai <b data-draw="t-real" data-source="capaian" data-field="realisasi_kwh">—</b> pelanggan dari target RAB <b data-draw="t-target" data-source="capaian" data-field="target_kwh">—</b> (<b data-draw="t-pct" data-source="capaian">—</b>). Meter lama berumur 15 tahun atau lebih mencapai <b data-draw="t-tua" data-source="rekap_usia">—</b> dari meter yang diganti, dan alasan terbanyak adalah <b data-draw="t-alasan" data-source="rekap_alasan" data-field="kelompok_alasan">—</b>.</p>
     </div>
     <div class="rp-head-r">

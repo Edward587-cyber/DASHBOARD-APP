@@ -2,7 +2,12 @@
   const nf = new Intl.NumberFormat('id-ID');
   const pf = new Intl.NumberFormat('id-ID', { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const rp = (v) => (v ? 'Rp ' + nf.format(v) : '—');
-  const K = () => dash.params().k || 'SEMUA';
+  const TH = () => Number(dash.params().tahun);
+  const K = () => { const k = dash.params().k || 'SEMUA'; return k === 'SEMUA' ? 'SEMUA-' + TH() : k; };
+  const isAll = (k) => String(k).startsWith('SEMUA');
+  const ofYear = (r) => Number(r.tahun) === TH();
+  const cfgOf = (id) => window.APP.LIST.find((c) => c.id === id) || {};
+  const lotOrder = (a, b) => (isAll(a.kontraktor) ? 99 : Number(a.lot) || 50) - (isAll(b.kontraktor) ? 99 : Number(b.lot) || 50);
   const KA = () => dash.params().ka || 'PENGGANTIAN KWH';
   const ok = (id) => dash.data(id).status === 'ok';
   const rowsOf = (id) => (ok(id) ? dash.data(id).data : []);
@@ -11,7 +16,6 @@
   const clColor = (i) => 'var(--u' + (i + 1) + ')';
   const KATS = ['PASKA 1 PHASA', 'PRABAYAR 1 PHASA', 'PRABAYAR 3 PHASA', 'PERIKSA', 'METER BOX'];
   const KLBL = { 'PASKA 1 PHASA': 'Paska 1P', 'PRABAYAR 1 PHASA': 'Prabayar 1P', 'PRABAYAR 3 PHASA': 'Prabayar 3P', PERIKSA: 'Periksa', 'METER BOX': 'Meter box' };
-  const NAMA = { ANGGADA: 'Anggada Perkasa Tehnik', JATI: 'Jati Teknik', DHANA: 'Dhana Julaga Ekada', HAFIZ: 'Hafiz Energi Tama', SEMUA: 'Total 4 kontrak' };
   const esc = (s) => encodeURIComponent(String(s));
   const placeholder = (el) => { el.textContent = '—'; };
   const failed = (el) => {
@@ -33,10 +37,8 @@
   const capRow = () => rowsOf('capaian').find((r) => r.kontraktor === K());
 
   // filter tombol
-  document.querySelectorAll('#dash-root [data-k]').forEach((b) => b.addEventListener('click', () => dash.setParams({ k: b.dataset.k })));
   document.querySelectorAll('#realisasi-app [data-ka]').forEach((b) => b.addEventListener('click', () => dash.setParams({ ka: b.dataset.ka })));
   dash.onData(() => {
-    document.querySelectorAll('#dash-root [data-k]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === K())));
     document.querySelectorAll('#realisasi-app [data-ka]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.ka === KA())));
   });
   let cari = '';
@@ -90,12 +92,11 @@
   dash.draw('tbl-kontrak', (tb) => {
     tb.replaceChildren();
     const rows = rowsOf('capaian');
-    const order = ['DHANA', 'HAFIZ', 'ANGGADA', 'JATI', 'SEMUA'];
-    rows.slice().sort((a, b) => order.indexOf(a.kontraktor) - order.indexOf(b.kontraktor)).forEach((r) => {
+    rows.filter(ofYear).sort(lotOrder).forEach((r) => {
       const tr = document.createElement('tr');
       tr.dataset.key = r.kontraktor;
-      if (r.kontraktor === 'SEMUA') tr.className = 'total';
-      if (K() !== 'SEMUA' && r.kontraktor !== K() && r.kontraktor !== 'SEMUA') tr.style.opacity = '.45';
+      if (isAll(r.kontraktor)) tr.className = 'total';
+      if (!isAll(K()) && r.kontraktor !== K() && !isAll(r.kontraktor)) tr.style.opacity = '.45';
       const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = txt; tr.append(c); return c; };
       td(r.lot || '', 'l');
       td(r.pelaksana || '', 'l');
@@ -364,12 +365,11 @@
   dash.draw('gauges', (el) => {
     if (!guard(el, 'capaian')) return;
     el.replaceChildren();
-    const order = ['DHANA', 'HAFIZ', 'ANGGADA', 'JATI', 'SEMUA'];
-    rowsOf('capaian').slice().sort((a, b) => order.indexOf(a.kontraktor) - order.indexOf(b.kontraktor)).forEach((r) => {
+    rowsOf('capaian').filter(ofYear).sort(lotOrder).forEach((r) => {
       const box = document.createElement('div'); box.className = 'rp-gauge' + (K() === r.kontraktor ? ' on' : ''); box.tabIndex = 0;
       box.setAttribute('role', 'button');
-      box.addEventListener('click', () => dash.setParams({ k: r.kontraktor }));
-      box.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dash.setParams({ k: r.kontraktor }); } });
+      box.addEventListener('click', () => dash.setParams({ k: isAll(r.kontraktor) ? 'SEMUA' : r.kontraktor }));
+      box.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dash.setParams({ k: isAll(r.kontraktor) ? 'SEMUA' : r.kontraktor }); } });
       const W = 150, H = 92, R = 66;
       const svgN = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       const svg = d3.select(svgN).attr('width', W).attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
@@ -382,7 +382,7 @@
       g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.2em').attr('font-size', 22).attr('fill', 'var(--color-fg)').text(r.persen == null ? '—' : pf.format(p));
       g.append('text').attr('text-anchor', 'middle').attr('dy', '1.1em').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').attr('font-family', 'var(--font-anthropic-sans)').text(nf.format(r.realisasi_kwh) + ' / ' + nf.format(r.target_kwh));
       const nm = document.createElement('div'); nm.className = 'nm';
-      nm.textContent = r.kontraktor === 'SEMUA' ? 'Total 4 kontrak' : 'Lot ' + r.lot + ' · ' + (NAMA[r.kontraktor] || r.kontraktor);
+      nm.textContent = isAll(r.kontraktor) ? 'Semua kontrak ' + r.tahun : 'Lot ' + r.lot + ' · ' + (cfgOf(r.kontraktor).nama || r.pelaksana);
       box.append(svgN, nm); el.append(box);
     });
   });
@@ -393,8 +393,7 @@
   dash.draw('ch-kontrak', (el) => {
     if (!guard(el, 'capaian')) return;
     el.replaceChildren();
-    const order = ['DHANA', 'HAFIZ', 'ANGGADA', 'JATI'];
-    const rows = rowsOf('capaian').filter((r) => r.kontraktor !== 'SEMUA').sort((a, b) => order.indexOf(a.kontraktor) - order.indexOf(b.kontraktor));
+    const rows = rowsOf('capaian').filter((r) => ofYear(r) && !isAll(r.kontraktor)).sort(lotOrder);
     const W = el.clientWidth || 700, H = 260, L = 48, B = 34;
     const svgN = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); el.append(svgN); el.style.minHeight = H + 'px';
     const svg = d3.select(svgN).attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
@@ -409,19 +408,19 @@
     rows.forEach((r) => {
       const x0 = x(r.kontraktor) + (x.bandwidth() - bw) / 2;
       let acc = 0;
-      const dim = K() !== 'SEMUA' && K() !== r.kontraktor ? 0.35 : 1;
+      const dim = !isAll(K()) && K() !== r.kontraktor ? 0.35 : 1;
       KF.forEach(([f, l], i) => {
         const v = Number(r[f] || 0); if (!v) return;
         svg.append('rect').attr('x', x0).attr('width', bw).attr('y', y(acc + v)).attr('height', Math.max(0, y(acc) - y(acc + v) - 1)).attr('rx', 2)
           .attr('fill', dash.colors[i]).attr('opacity', dim).style('cursor', 'pointer')
-          .on('click', () => dash.setParams({ k: r.kontraktor }))
-          .on('mousemove', (ev) => showTip(el, ev, 'Lot ' + r.lot + ' · ' + (NAMA[r.kontraktor] || ''), [...KF.map(([ff, ll], j) => [dash.colors[j], 1, ll, nf.format(r[ff] || 0)]), [null, 1, 'Target RAB', nf.format(r.target_kwh)], [null, 1, 'Capaian', r.persen == null ? '—' : pf.format(r.persen)]]))
+          .on('click', () => dash.setParams({ k: isAll(r.kontraktor) ? 'SEMUA' : r.kontraktor }))
+          .on('mousemove', (ev) => showTip(el, ev, 'Lot ' + r.lot + ' · ' + (cfgOf(r.kontraktor).nama || ''), [...KF.map(([ff, ll], j) => [dash.colors[j], 1, ll, nf.format(r[ff] || 0)]), [null, 1, 'Target RAB', nf.format(r.target_kwh)], [null, 1, 'Capaian', r.persen == null ? '—' : pf.format(r.persen)]]))
           .on('mouseleave', () => hideTip(el));
         acc += v;
       });
       if (r.target_kwh) svg.append('line').attr('x1', x0 - 8).attr('x2', x0 + bw + 8).attr('y1', y(r.target_kwh)).attr('y2', y(r.target_kwh)).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2).attr('stroke-dasharray', '5 3');
       svg.append('text').attr('class', 'strong').attr('x', x0 + bw / 2).attr('y', y(Math.max(acc, r.target_kwh)) - 8).attr('text-anchor', 'middle').text(r.persen == null ? '' : pf.format(r.persen));
-      svg.append('text').attr('x', x0 + bw / 2).attr('y', H - 12).attr('text-anchor', 'middle').text('Lot ' + r.lot + ' · ' + r.kontraktor);
+      svg.append('text').attr('x', x0 + bw / 2).attr('y', H - 12).attr('text-anchor', 'middle').text('Lot ' + r.lot + ' · ' + (cfgOf(r.kontraktor).key || ''));
     });
   });
 })();

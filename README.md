@@ -44,5 +44,10 @@ Di setiap spreadsheet: **Bagikan → Akses umum → Siapa saja yang memiliki lin
 - Umur = tahun penggantian − TAHUN meter lama; cluster < 10, 10 – < 15, ≥ 15 tahun.
 - Alasan = kolom ALASAN GANTI METER; bila kosong, kolom KETERANGAN.
 
-## Menambah kontrak baru
-Tambahkan baris di `config.js` → `kontraktor`, lalu tambahkan key-nya di `rekap.js` (variabel `src` dan `SPJ`).
+## Menambah kontrak tahun baru
+1. Buka `config.js`, tambahkan satu baris di `kontraktor`, misalnya:
+   `{ tahun: 2027, key: 'ANGGADA', lot: 1, nama: 'Anggada Perkasa Tehnik', spj: '0012.', spreadsheetId: 'ID_SPREADSHEET' },`
+2. Bagikan spreadsheet barunya "Siapa saja yang memiliki link → Pelihat".
+3. Tahun 2027 otomatis muncul di filter **Tahun kontrak**; dashboard terbuka di tahun terbaru.
+
+Spreadsheet baru harus memakai judul kolom yang sama (IDPEL, TANGGAL PENGGANTIAN, ALASAN GANTI METER, METER LAMA → TAHUN, dst.) dan nama sheet PASKA 1 PHASA, PRABAYAR 1 PHASA, PRABAYAR 3 PHASA, PERIKSA, METER BOX, BOX COMBO, RAB. Data kontrak dicocokkan ke LIST TAGIHAN lewat awalan nomor SPJ dan tahunnya.
