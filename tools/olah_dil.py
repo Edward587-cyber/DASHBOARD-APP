@@ -99,16 +99,22 @@ def main(f_awal, f_akhir, out='data/dil'):
     p_awal, p_akhir = periode(f_awal, a), periode(f_akhir, b)
     th_ref = int(p_awal[:4])
     a = a[(a.STATUS_DIL == 'AKTIF') & (a.NOMOR_METER_KWH != '')].copy()
+    # Umur hanya dari TAHUN_BUAT_METER_KWH DIL awal (tanpa pengganti dari tahun tera).
     th = a.TAHUN_BUAT_METER_KWH.where(a.TAHUN_BUAT_METER_KWH.between(1950, th_ref))
-    th = th.fillna(a.TAHUN_TERA_METER_KWH.where(a.TAHUN_TERA_METER_KWH.between(1950, th_ref)))
     a['TAHUN_METER'] = th
     a['UMUR'] = th_ref - th
-    bb = b[['IDPEL', 'NOMOR_METER_KWH', 'JENISLAYANAN', 'MERK_METER_KWH', 'TYPE_METER_KWH', 'TANGGAL_PASANG_RUBAH_APP', 'STATUS_DIL'] + [c for c in ['NAMA_KELURAHAN', 'NAMA_KECAMATAN'] if c in b]]
+    bb = b[['IDPEL', 'NOMOR_METER_KWH', 'JENISLAYANAN', 'MERK_METER_KWH', 'TYPE_METER_KWH', 'TAHUN_BUAT_METER_KWH', 'TANGGAL_PASANG_RUBAH_APP', 'STATUS_DIL'] + [c for c in ['NAMA_KELURAHAN', 'NAMA_KECAMATAN'] if c in b]]
     m = a.merge(bb, on='IDPEL', how='left', suffixes=('', '_BARU'))
     m['STATUS'] = np.select(
         [m.NOMOR_METER_KWH_BARU.isna(), m.NOMOR_METER_KWH_BARU == '', m.NOMOR_METER_KWH_BARU != m.NOMOR_METER_KWH],
         ['Tidak ada di DIL akhir', 'Nomor meter kosong', 'Terganti'], 'Belum terganti')
     m['JENIS'] = m.JENISLAYANAN.str.title()
+    # Validasi dengan DIL akhir: terganti sah bila nomor meter berubah DAN tahun buat meter baru lebih baru dari meter lama.
+    tb = m.TAHUN_BUAT_METER_KWH_BARU
+    baru_lebih_baru = tb.notna() & (tb > m.TAHUN_METER.fillna(0))
+    m['VALIDASI'] = np.select(
+        [(m.STATUS == 'Terganti') & baru_lebih_baru, m.STATUS == 'Terganti', m.STATUS == 'Belum terganti'],
+        ['Terganti · tervalidasi', 'Terganti · perlu cek tahun meter baru', 'Belum terganti'], 'Tidak ada / nomor kosong di DIL akhir')
     m['TARGET'] = ((m.JENISLAYANAN == 'PASKABAYAR') & (m.UMUR >= UMUR_PASKA)) | ((m.JENISLAYANAN == 'PRABAYAR') & (m.UMUR >= UMUR_PRA))
     m['CLUSTER'] = m.UMUR.map(cluster)
     m['MERK'] = m.MERK_METER_KWH.map(merk)
@@ -146,6 +152,7 @@ def main(f_awal, f_akhir, out='data/dil'):
         'dibuat': pd.Timestamp.now(tz='Asia/Jakarta').strftime('%Y-%m-%d %H:%M'),
         'populasi': int(len(m)),
         'per_jenis_umur': grp(['JENIS', 'CLUSTER', 'TARGET']),
+        'klasifikasi': json.loads(m.groupby(['JENIS', 'TARGET', 'VALIDASI']).size().reset_index(name='jumlah').rename(columns=str.lower).to_json(orient='records')),
         'per_bulan': json.loads(m[m.BULAN_GANTI != ''].groupby(['BULAN_GANTI', 'JENIS', 'TARGET']).size().reset_index(name='jumlah').rename(columns=str.lower).to_json(orient='records')),
         'per_merk': grp(['JENIS', 'MERK', 'TARGET']),
         'per_kelurahan': grp(['JENIS', 'KECAMATAN', 'KELURAHAN', 'TARGET']),
@@ -158,12 +165,13 @@ def main(f_awal, f_akhir, out='data/dil'):
     d = m[m.TARGET | (m.STATUS == 'Terganti')]
     cols = {'IDPEL': 'IDPEL', 'JENIS': 'JENIS', 'TARIF': 'TARIF', 'DAYA': 'DAYA', 'KECAMATAN': 'KECAMATAN', 'KELURAHAN': 'KELURAHAN', 'NOMOR_GARDU': 'GARDU',
             'MERK_METER_KWH': 'MERK_LAMA', 'TYPE_METER_KWH': 'TYPE_LAMA', 'TAHUN_METER': 'TAHUN_METER_LAMA', 'UMUR': 'UMUR', 'CLUSTER': 'CLUSTER_UMUR',
-            'TARGET': 'TARGET_UMUR', 'NOMOR_METER_KWH': 'NO_METER_' + p_awal, 'STATUS': 'STATUS', 'NOMOR_METER_KWH_BARU': 'NO_METER_' + p_akhir,
-            'MERK_METER_KWH_BARU': 'MERK_BARU', 'JENISLAYANAN_BARU': 'JENIS_BARU', 'TGL_PASANG_BARU': 'TGL_PASANG_BARU'}
+            'TARGET': 'TARGET_UMUR', 'NOMOR_METER_KWH': 'NO_METER_' + p_awal, 'STATUS': 'STATUS', 'VALIDASI': 'VALIDASI', 'NOMOR_METER_KWH_BARU': 'NO_METER_' + p_akhir,
+            'MERK_METER_KWH_BARU': 'MERK_BARU', 'TAHUN_BUAT_METER_KWH_BARU': 'TAHUN_BUAT_BARU', 'JENISLAYANAN_BARU': 'JENIS_BARU', 'TGL_PASANG_BARU': 'TGL_PASANG_BARU'}
     d = d[list(cols)].rename(columns=cols)
     d['DAYA'] = d.DAYA.fillna(0).astype(int)
     d['TAHUN_METER_LAMA'] = d.TAHUN_METER_LAMA.astype('Int64').astype(str).replace('<NA>', '')
     d['UMUR'] = d.UMUR.astype('Int64').astype(str).replace('<NA>', '')
+    d['TAHUN_BUAT_BARU'] = pd.to_numeric(d.TAHUN_BUAT_BARU, errors='coerce').astype('Int64').astype(str).replace('<NA>', '')
     d['TARGET_UMUR'] = np.where(d.TARGET_UMUR, 'YA', 'TIDAK')
     d = d.fillna('')
     sandi = os.environ.get('DIL_SANDI')

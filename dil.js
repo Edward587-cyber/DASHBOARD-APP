@@ -231,6 +231,33 @@
     $('#dil-dl-info').textContent = nf.format(rows.length) + ' baris diunduh';
   }
 
+  // ---------- klasifikasi (pie) ----------
+  const VCOL = { 'Terganti · tervalidasi': 'var(--color-ok)', 'Terganti · perlu cek tahun meter baru': 'var(--color-warn)', 'Belum terganti': 'var(--color-bad)', 'Tidak ada / nomor kosong di DIL akhir': 'var(--cds-chart-muted)' };
+  const VORD = Object.keys(VCOL);
+  function klasifikasi() {
+    const k = S.ring.klasifikasi || [];
+    const pie = (id, rows, label) => {
+      const box = $(id); if (!box) return;
+      const items = VORD.map((v) => ({ label: v, value: sum(pick(rows, (r) => r.validasi === v), 'jumlah'), color: VCOL[v] }));
+      const tot = d3.sum(items, (x) => x.value), ok = items[0].value + items[1].value;
+      R.donut(box, items, tot ? pf.format(ok / tot) : '—', label);
+    };
+    pie('#dil-pie-paska', pick(k, (r) => r.target && r.jenis === 'Paskabayar'), 'terganti');
+    pie('#dil-pie-pra', pick(k, (r) => r.target && r.jenis === 'Prabayar'), 'terganti');
+    const box = $('#dil-pie-semua');
+    if (box) {
+      const g = pick(k, (r) => r.validasi.startsWith('Terganti'));
+      const items = [
+        { label: 'Meter tua · Paskabayar ≥ 15 th', value: sum(pick(g, (r) => r.target && r.jenis === 'Paskabayar'), 'jumlah'), color: 'var(--c1)' },
+        { label: 'Meter tua · Prabayar ≥ 10 th', value: sum(pick(g, (r) => r.target && r.jenis === 'Prabayar'), 'jumlah'), color: 'var(--c2)' },
+        { label: 'Bukan meter tua · Paskabayar', value: sum(pick(g, (r) => !r.target && r.jenis === 'Paskabayar'), 'jumlah'), color: 'var(--c3)' },
+        { label: 'Bukan meter tua · Prabayar', value: sum(pick(g, (r) => !r.target && r.jenis === 'Prabayar'), 'jumlah'), color: 'var(--c4)' },
+      ];
+      const tot = d3.sum(items, (x) => x.value), tua = items[0].value + items[1].value;
+      R.donut(box, items, tot ? pf.format(tua / tot) : '—', 'meter tua');
+    }
+  }
+
   // ---------- kontrol ----------
   function tekan(sel, attr, cur) { document.querySelectorAll(sel).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset[attr] === cur))); }
   function gambar() {
@@ -238,7 +265,7 @@
     tekan('#dil [data-dj]', 'dj', S.jenis);
     tekan('#dil [data-ds]', 'ds', S.status);
     tekan('#dil [data-ks]', 'ks', S.kelSort);
-    kpi(); peta(); umur(); bulan(); merk(); kelurahan();
+    kpi(); klasifikasi(); peta(); umur(); bulan(); merk(); kelurahan();
   }
   function pasang() {
     document.querySelectorAll('#dil [data-dj]').forEach((b) => b.addEventListener('click', () => { S.jenis = b.dataset.dj; gambar(); }));
@@ -257,7 +284,7 @@
 
   async function mulai() {
     pasang();
-    ['#dil-umur', '#dil-bulan', '#dil-merk'].forEach((s) => { const e = $(s); if (e) R.memuat(e); });
+    ['#dil-umur', '#dil-bulan', '#dil-merk', '#dil-pie-paska', '#dil-pie-pra', '#dil-pie-semua'].forEach((s) => { const e = $(s); if (e) R.memuat(e); });
     try {
       S.ring = await fetch('data/dil/ringkasan.json' + V).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
       gambar();

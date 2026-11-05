@@ -227,6 +227,10 @@ body { background: var(--color-bg); }
 #dash-root .rp-btn { padding: 9px 14px; font-weight: 600; font-size: .88rem; }
 #dash-root .rp-btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 #dash-root .rp-btn:disabled { opacity: .5; cursor: not-allowed; }
+#dash-root .rp-pies { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 18px; }
+#dash-root .rp-pie { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid var(--color-border-line); border-radius: 12px; background: #0b1d26; min-width: 0; }
+#dash-root .rp-pie h4 { margin: 0; font-size: .95rem; font-weight: 700; }
+#dash-root .rp-pie .rp-donut { min-height: 200px; gap: 14px; }
 </style>
 </head>
 <body>
@@ -295,6 +299,14 @@ body { background: var(--color-bg); }
       </div>
     </div>
     <div class="rp-kpis" id="dil-kpi"></div>
+    <div class="rp-card wide" id="dil-klas">
+      <div class="rp-ch"><h3>Klasifikasi ganti meter tua</h3><p class="rp-cap">Umur dari TAHUN_BUAT_METER_KWH DIL awal. Tervalidasi = di DIL akhir nomor meter berubah dan tahun buat meter baru lebih baru.</p></div>
+      <div class="rp-pies">
+        <div class="rp-pie"><h4>Paskabayar ≥ 15 tahun</h4><div class="rp-donut" id="dil-pie-paska"></div></div>
+        <div class="rp-pie"><h4>Prabayar ≥ 10 tahun</h4><div class="rp-donut" id="dil-pie-pra"></div></div>
+        <div class="rp-pie"><h4>Seluruh meter yang terganti</h4><div class="rp-donut" id="dil-pie-semua"></div></div>
+      </div>
+    </div>
     <div class="rp-grid">
       <div class="rp-card wide">
         <div class="rp-ch"><h3>Peta sebaran meter target umur</h3><p class="rp-cap">Satu lingkaran = area ±550 m. Besar lingkaran = jumlah meter; warna merah → hijau = makin banyak yang sudah terganti.</p></div>
@@ -582,7 +594,7 @@ body { background: var(--color-bg); }
 <script src="rekap.js?v=20261105-11"></script>
 <script src="gambar.js?v=20261105-11"></script>
 <script src="tata.js?v=20261105-11"></script>
-<script>window.DIL_VERSI = "202506-202609-2";</script>
-<script src="dil.js?v=20261105-13"></script>
+<script>window.DIL_VERSI = "202506-202609-3";</script>
+<script src="dil.js?v=20261105-14"></script>
 </body>
 </html>
