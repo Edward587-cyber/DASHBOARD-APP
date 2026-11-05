@@ -238,6 +238,109 @@ body { background: var(--color-bg); }
 @media (max-width: 900px) { .rp-side { position: static; width: auto; } .rp-shell > .rp-main { grid-column: 1; } }
 #dash-root [data-tab][hidden] { display: none !important; }
 .rp-side > * { flex-shrink: 0; }
+
+/* ===== Materi presentasi ===== */
+#dash-root .mt-wrap { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 1100px) { #dash-root .mt-wrap { grid-template-columns: minmax(0, 1fr); } }
+#dash-root .mt-side { display: flex; flex-direction: column; gap: 12px; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 14px; padding: 16px; position: sticky; top: 16px; }
+#dash-root .mt-h { margin: 6px 0 0; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--color-fg-muted); }
+#dash-root .mt-h small { text-transform: none; letter-spacing: 0; }
+#dash-root .mt-item { display: flex; align-items: center; gap: 8px; }
+#dash-root .mt-item button { flex: 1; font: inherit; text-align: left; display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg); cursor: pointer; font-size: .9rem; }
+#dash-root .mt-item button b { font-family: var(--font-mono); color: var(--color-fg-muted); }
+#dash-root .mt-item button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+#dash-root .mt-item button[aria-pressed="true"] b { color: var(--accent-ink); }
+#dash-root .mt-item input { width: 18px; height: 18px; accent-color: var(--accent); }
+#dash-root #mt-list { display: flex; flex-direction: column; gap: 6px; }
+#dash-root .mt-act { display: flex; flex-wrap: wrap; gap: 8px; }
+#dash-root .mt-act .rp-btn { flex: 1 1 auto; text-align: center; }
+#dash-root .mt-act.small .rp-btn { font-size: .78rem; padding: 7px 10px; font-weight: 500; }
+#dash-root .mt-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+#dash-root .mt-prev { border-radius: 12px; overflow: hidden; border: 1px solid var(--color-border-line); background: #fff; }
+#dash-root .sl-wrap { position: relative; overflow: hidden; }
+#dash-root .sl-wrap > .sl { transform-origin: 0 0; position: absolute; left: 0; top: 0; }
+#dash-root .mf { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; color: var(--color-fg-muted); flex: 1 1 10rem; min-width: 0; }
+#dash-root .mf input, #dash-root .mf textarea, #dash-root .mg input { font: inherit; font-size: .88rem; color: var(--color-fg); background: #0b1d26; border: 1px solid var(--color-border-line); border-radius: 8px; padding: 7px 9px; width: 100%; box-sizing: border-box; }
+#dash-root .mf textarea { resize: vertical; }
+#dash-root .mform { display: flex; flex-direction: column; gap: 12px; }
+#dash-root .mform h5 { margin: 6px 0 0; font-size: .85rem; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; }
+#dash-root .mrow { display: flex; flex-wrap: wrap; gap: 12px; }
+#dash-root .mnote { margin: 0; font-size: .82rem; color: var(--color-fg-muted); }
+#dash-root .mg { border-collapse: collapse; width: 100%; max-width: 640px; font-size: .82rem; }
+#dash-root .mg th { text-align: left; color: var(--color-fg-muted); font-weight: 500; padding: 4px 6px; }
+#dash-root .mg td { padding: 2px 4px; }
+#dash-root .mg input { padding: 5px 7px; font-family: var(--font-mono); }
+/* slide (selalu terang, 1280x720) */
+.sl { width: 1280px; height: 720px; background: linear-gradient(180deg, #ffffff 0%, #f3f8fe 100%); color: #1b2b40; font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif; display: flex; flex-direction: column; position: relative; overflow: hidden; box-sizing: border-box; }
+.sl * { box-sizing: border-box; }
+.sl::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 10px; background: linear-gradient(90deg, #0b2a5b, #1565c0 60%, #fbc02d); }
+.sl-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 26px 44px 8px; }
+.sl-title { font-size: 40px; font-weight: 800; color: #0b2a5b; letter-spacing: .01em; line-height: 1.05; position: relative; padding-bottom: 10px; }
+.sl-title::after { content: ""; position: absolute; left: 0; bottom: 0; width: 120px; height: 5px; border-radius: 3px; background: #fbc02d; }
+.sl-title small { display: block; font-size: 18px; font-weight: 700; color: #1565c0; margin-top: 6px; letter-spacing: .04em; }
+.sl-logo { height: 70px; }
+.sl-body { flex: 1; padding: 10px 44px 34px; min-height: 0; }
+.sl-foot { position: absolute; left: 44px; right: 44px; bottom: 16px; display: flex; justify-content: space-between; font-size: 12px; color: #5b6b7f; }
+.sl-panel { background: #fff; border: 1px solid #d6e4f3; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(11,42,91,.06); min-height: 0; }
+.sl-ph { background: linear-gradient(90deg, #0b2a5b, #1565c0); color: #fff; font-weight: 700; font-size: 15px; padding: 8px 14px; letter-spacing: .02em; }
+.sl-pb { padding: 10px 14px; flex: 1; min-height: 0; font-size: 14px; }
+.sl-pb svg { display: block; max-width: 100%; height: auto; }
+.sl-list { margin: 6px 0 0; padding-left: 0; list-style: none; counter-reset: n; display: flex; flex-direction: column; gap: 7px; }
+.sl-list li { counter-increment: n; position: relative; padding-left: 34px; font-size: 14px; line-height: 1.3; }
+.sl-list li::before { content: counter(n); position: absolute; left: 0; top: -1px; width: 24px; height: 24px; border-radius: 50%; background: #1e88e5; color: #fff; font-weight: 700; font-size: 13px; display: grid; place-items: center; }
+.sl-sub { display: block; margin-top: 10px; color: #0b2a5b; }
+.sl-kond { margin: 0; font-size: 15px; line-height: 1.6; }
+.sl-kond p { margin: 4px 0 0; }
+.sl .pill { display: inline-block; background: #1565c0; color: #fff; font-weight: 700; padding: 0 8px; border-radius: 6px; }
+.sl-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sl-tbl th { background: #1565c0; color: #fff; padding: 7px 8px; font-weight: 700; text-align: center; border: 1px solid #fff; }
+.sl-tbl td { padding: 6px 8px; text-align: center; border-bottom: 1px solid #d6e4f3; }
+.sl-tbl td.l { text-align: left; }
+.sl-tbl td.hl { background: #fff3c4; font-weight: 800; color: #0b2a5b; }
+.sl-tbl tr.tot td { background: #e3effc; font-weight: 800; color: #0b2a5b; }
+.sl-tbl.green th { background: #2e7d32; }
+.sl-tbl.green td { padding: 1px 8px; font-size: 11.5px; line-height: 1.35; }
+.sl-tbl.green th { padding: 4px 6px; font-size: 12px; }
+.sl-tbl.big td { font-size: 22px; padding: 10px; font-weight: 600; }
+.sl-tbl.big th { font-size: 18px; }
+.g-lbkb { display: grid; grid-template-columns: 1fr 1fr 0.9fr; grid-template-rows: 268px 1fr; gap: 14px; height: 100%; }
+.g-lbkb .d { grid-column: 1 / 2; } .g-lbkb .e { grid-column: 2 / 3; } .g-lbkb .c { grid-row: 1 / 3; grid-column: 3; }
+.g-lbkb .e { background: #fff; border-radius: 12px; border: 1px solid #d6e4f3; overflow: hidden; }
+.g-rkm { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; height: 100%; }
+.g-rkm .a, .g-rkm .b { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.g-fso { display: grid; grid-template-columns: 1.15fr 1fr 1fr; grid-template-rows: auto auto 1fr; gap: 12px; height: 100%; }
+.fso-tiles { grid-column: 1 / 4; display: flex; gap: 12px; }
+.fso-tile { flex: 1; display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid #d6e4f3; border-radius: 12px; padding: 12px 14px; }
+.fso-tile i { width: 46px; height: 46px; border-radius: 50%; flex: none; }
+.fso-tile span { display: block; font-size: 13px; color: #0b2a5b; font-weight: 600; }
+.fso-tile b { display: block; font-size: 32px; color: #0b2a5b; line-height: 1.1; }
+.fso-tile small { font-size: 12px; color: #5b6b7f; }
+.fso-pct { flex: 1.3; display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid #d6e4f3; border-radius: 12px; padding: 8px 14px; }
+.fso-pct span { display: block; font-size: 14px; font-weight: 600; color: #0b2a5b; }
+.fso-pct b { display: block; font-size: 36px; color: #2e7d32; }
+.g-fso .r { grid-column: 1 / 3; } .g-fso .k { grid-column: 3; grid-row: 2 / 4; } .g-fso .p { grid-column: 1; } .g-fso .q { grid-column: 2; }
+.fso-komp { display: flex; align-items: center; gap: 14px; }
+.sl-leg { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.sl-leg li { display: flex; flex-direction: column; padding-left: 18px; position: relative; }
+.sl-leg i { position: absolute; left: 0; top: 4px; width: 11px; height: 11px; border-radius: 50%; }
+.sl-leg b { color: #0b2a5b; }
+.fso-bar { display: flex; flex-direction: column; gap: 10px; }
+.fso-bar .bar { height: 16px; background: #e3effc; border-radius: 8px; overflow: hidden; }
+.fso-bar .bar i { display: block; height: 100%; background: linear-gradient(90deg, #1565c0, #29b6f6); border-radius: 8px; }
+.fso-bar b { font-size: 22px; color: #0b2a5b; }
+.fso-bar p { margin: 0; font-style: italic; color: #1b2b40; text-align: center; }
+.g-dok { display: flex; flex-direction: column; gap: 14px; height: 100%; }
+.dok-img { flex: 1; min-height: 0; width: 100%; object-fit: cover; border-radius: 14px; border: 4px solid #fff; box-shadow: 0 4px 14px rgba(11,42,91,.15); }
+.dok-img.kosong, .kt-foto .kosong { display: grid; place-items: center; background: #e3effc; color: #5b6b7f; font-size: 16px; border-radius: 12px; }
+.dok-ket p { margin: 0; text-align: center; font-size: 20px; font-style: italic; color: #0b2a5b; }
+.g-kt { display: grid; grid-template-columns: 1fr 1fr 1.25fr; grid-template-rows: auto 1fr; gap: 14px; height: 100%; }
+.g-kt .a { grid-column: 1 / 4; }
+.kt-foto { grid-column: 1 / 3; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; min-height: 0; }
+.kt-foto img, .kt-foto .kosong { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; min-height: 0; }
+.pagu { display: grid; grid-template-columns: 1fr 1.3fr; gap: 10px; font-size: 14px; }
+.pagu p { margin: 0 0 8px; }
+.pagu .sl-list { margin: 0 0 12px; }
+.pagu .hlbox { background: #fff3c4; padding: 6px 10px; border-radius: 8px; font-weight: 800; color: #0b2a5b; }
 </style>
 </head>
 <body>
@@ -254,6 +357,7 @@ body { background: var(--color-bg); }
     <a href="#alasan" data-nav="alasan"><span aria-hidden="true">≋</span>Cluster alasan</a>
     <a href="#penyebab" data-nav="penyebab"><span aria-hidden="true">⚑</span>Penyebab per umur</a>
     <a href="#tren" data-nav="tren"><span aria-hidden="true">↗</span>Tren bulanan</a>
+    <a href="#materi" data-nav="materi"><span aria-hidden="true">▤</span>Materi presentasi</a>
     <a href="#catatan" data-nav="catatan"><span aria-hidden="true">Σ</span>Catatan</a>
   </nav>
   <p class="rp-side-h">Tahun kontrak</p>
@@ -578,6 +682,31 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
+  <section class="rp-sec" id="materi" data-tab="materi">
+    <h2>Materi presentasi · Kinerja Dal APP</h2>
+    <div class="mt-wrap">
+      <aside class="mt-side">
+        <label class="mf"><span>Periode laporan</span><input id="mt-periode" type="text" placeholder="Oktober 2026"></label>
+        <p class="mt-h">Slide <small>(centang = ikut diekspor)</small></p>
+        <div id="mt-list"></div>
+        <div class="mt-act">
+          <button type="button" class="rp-btn primary" id="mt-pptx">Unduh PowerPoint</button>
+          <button type="button" class="rp-btn" id="mt-png">Unduh slide ini (PNG)</button>
+        </div>
+        <p class="rp-cap" id="mt-info">Isian tersimpan otomatis di browser ini.</p>
+        <div class="mt-act small">
+          <button type="button" class="rp-btn" id="mt-json">Simpan isian (.json)</button>
+          <label class="rp-btn">Muat isian<input id="mt-impor" type="file" accept="application/json" hidden></label>
+          <button type="button" class="rp-btn" id="mt-reset">Kembalikan contoh</button>
+        </div>
+      </aside>
+      <div class="mt-main">
+        <div id="mt-prev" class="mt-prev"></div>
+        <div class="rp-card"><div class="rp-ch"><h3>Isian slide</h3><p class="rp-cap">Perubahan langsung tampil di pratinjau.</p></div><div id="mt-form"></div></div>
+      </div>
+    </div>
+  </section>
+
   <section class="rp-sec" id="catatan" data-tab="catatan">
     <h2>Catatan perhitungan</h2>
     <ul class="rp-notes">
@@ -599,10 +728,11 @@ body { background: var(--color-bg); }
 <script src="config.js?v=20261105-11"></script>
 <script src="sumber.js?v=20261105-11"></script>
 <script src="app.js?v=20261105-11"></script>
-<script src="rekap.js?v=20261105-11"></script>
+<script src="rekap.js?v=20261105-17"></script>
 <script src="gambar.js?v=20261105-11"></script>
-<script src="tata.js?v=20261105-16"></script>
+<script src="tata.js?v=20261105-17"></script>
 <script>window.DIL_VERSI = "202506-202609-4";</script>
-<script src="dil.js?v=20261105-16"></script>
+<script src="materi.js?v=20261105-18" defer></script>
+<script src="dil.js?v=20261105-18"></script>
 </body>
 </html>

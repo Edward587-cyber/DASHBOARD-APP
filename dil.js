@@ -304,6 +304,7 @@
     ['#dil-umur', '#dil-bulan', '#dil-merk', '#dil-pie-paska', '#dil-pie-pra', '#dil-pie-semua', '#dil-pie-kosong'].forEach((s) => { const e = $(s); if (e) R.memuat(e); });
     try {
       S.ring = await fetch('data/dil/ringkasan.json' + V).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+      window.DIL_RING = S.ring; window.dispatchEvent(new Event('dil-siap'));
       gambar();
     } catch (e) {
       ['#dil-umur', '#dil-bulan', '#dil-merk'].forEach((s) => { const x = $(s); if (x) R.failed(x); });
