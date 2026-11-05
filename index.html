@@ -10,27 +10,32 @@
 :root {
   --font-anthropic-sans: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-anthropic-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --color-bg: #f6f7f8; --color-panel: #ffffff; --color-fg: #1d232a; --color-fg-muted: #5c6670; --color-border-line: #dde1e5;
-  --color-ok: #1f7a4d; --color-warn: #a86400; --color-bad: #b42318;
-  --c1: #1a5fb4; --c2: #2f8f83; --c3: #c2771b; --c4: #7b4fa8; --c5: #6b7785; --c6: #b5485a; --c7: #4d8a2e; --c8: #8c6d3f;
-  --cds-chart-grid: #e7eaee; --cds-chart-muted: #b3bac2; --cds-chart-axis: #9aa3ad;
-  --cds-surface-popover: #ffffff; --cds-border: #d3d8de; --cds-shadow-popover: 0 4px 16px rgba(20,30,45,.12); --cds-text-secondary: #5c6670;
+  --color-bg: #0e1217; --color-panel: #161c23; --color-fg: #e8ecf0; --color-fg-muted: #94a0ad; --color-border-line: #26303a;
+  --color-ok: #4cc38a; --color-warn: #f0b443; --color-bad: #f2706a;
+  --c1: #5aa2f5; --c2: #3cc4b0; --c3: #f0a63c; --c4: #b18ce8; --c5: #8d99a6; --c6: #ef6f86; --c7: #7fd06a; --c8: #d9b77e;
+  --u1: #5ccf8f; --u2: #f2bb4a; --u3: #ef5d60; --u4: #4b5663;
+  --cds-chart-grid: #222b34; --cds-chart-muted: #4b5663; --cds-chart-axis: #5c6670;
+  --cds-surface-popover: #1f2730; --cds-border: #36414c; --cds-shadow-popover: 0 6px 20px rgba(0,0,0,.5); --cds-text-secondary: #94a0ad;
   --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 14px; --cds-gap-lg: 20px; --cds-gap-xl: 32px;
   --cds-pad-xs: 4px; --cds-pad-sm: 8px; --cds-pad-md: 14px; --cds-pad-lg: 18px;
   --cds-font-size-caption: 0.8125rem; --cds-font-size-body: 0.9375rem; --cds-font-size-heading: 1.0625rem; --cds-font-size-title: 1.75rem;
-  --cds-font-weight-medium: 600; --cds-radius: 6px; --cds-dur-slow: .3s;
-  color-scheme: light;
+  --cds-font-weight-medium: 600; --cds-radius: 8px; --cds-dur-slow: .3s;
+  color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #12161b; --color-panel: #1a2027; --color-fg: #e6e9ec; --color-fg-muted: #9aa4ae; --color-border-line: #2c343d;
-    --color-ok: #4cc38a; --color-warn: #e0a43a; --color-bad: #f0716a;
-    --c1: #6fa8f5; --c2: #4fc1b2; --c3: #e6a04a; --c4: #b18ce0; --c5: #98a3af; --c6: #e57a8c; --c7: #86c35f; --c8: #c9a874;
-    --cds-chart-grid: #262e37; --cds-chart-muted: #4b5560; --cds-chart-axis: #5c6670;
-    --cds-surface-popover: #222a33; --cds-border: #36404a; --cds-shadow-popover: 0 4px 16px rgba(0,0,0,.4); --cds-text-secondary: #9aa4ae;
-    color-scheme: dark;
-  }
-}
+#dash-root .rp-donut { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-lg); position: relative; min-height: 220px; }
+#dash-root .rp-donut svg { flex: 0 0 auto; display: block; }
+#dash-root .rp-donut .center-n { fill: var(--color-fg); font-family: var(--font-anthropic-serif); font-size: 26px; }
+#dash-root .rp-donut .center-l { fill: var(--color-fg-muted); font-size: 12px; font-family: var(--font-anthropic-sans); }
+#dash-root .rp-dleg { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 12rem; font-size: var(--cds-font-size-caption); }
+#dash-root .rp-dleg div { display: grid; grid-template-columns: 12px 1fr auto auto; gap: 8px; align-items: center; }
+#dash-root .rp-dleg i { width: 12px; height: 12px; border-radius: 3px; }
+#dash-root .rp-dleg .v { font-variant-numeric: tabular-nums; color: var(--color-fg); }
+#dash-root .rp-dleg .p { color: var(--color-fg-muted); font-variant-numeric: tabular-nums; min-width: 3.5em; text-align: right; }
+#dash-root .rp-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--cds-gap-md); }
+#dash-root .rp-gauge { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--cds-pad-sm); border-radius: var(--cds-radius); cursor: pointer; border: 1px solid transparent; }
+#dash-root .rp-gauge:hover, #dash-root .rp-gauge.on { border-color: var(--color-border-line); background: rgba(255,255,255,.02); }
+#dash-root .rp-gauge .nm { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-align: center; }
+#dash-root .rp-gauge svg text { font-family: var(--font-anthropic-serif); }
 html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); }
 #dash-root { max-width: 1400px; margin-inline: auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 #dash-root .rp-status { display: flex; align-items: center; gap: var(--cds-gap-sm); }
@@ -53,7 +58,7 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
 #dash-root .rp-toolbar { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); align-items: center; justify-content: space-between; }
 #dash-root .rp-cap { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
 #dash-root .rp-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--cds-gap-md); }
-#dash-root .rp-kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
+#dash-root .rp-kpi { background: linear-gradient(180deg, #19212a, var(--color-panel)); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
 #dash-root .rp-kpi.main { grid-column: span 2; }
 @media (max-width: 30rem) { #dash-root .rp-kpi.main { grid-column: span 1; } }
 #dash-root .rp-kpi .lbl { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .02em; }
@@ -136,6 +141,29 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
     <div class="rp-kpi"><span class="lbl">Box combo</span><span class="val" data-draw="kpi" data-kat="BOX COMBO" data-source="rekap_kategori" data-field="realisasi">—</span><span class="sub" data-draw="kpi-box-sub" data-source="rekap_kategori">—</span></div>
   </section>
 
+
+  <section class="rp-sec" id="komposisi">
+    <h2>Komposisi dan capaian</h2>
+    <div class="rp-grid">
+      <div class="rp-card">
+        <h3>Komposisi realisasi per kategori</h3>
+        <p class="rp-cap">Porsi pelanggan per sheet pekerjaan (box combo dalam unit box).</p>
+        <div class="rp-donut" data-draw="dn-kategori" data-source="rekap_kategori"></div>
+      </div>
+      <div class="rp-card">
+        <h3>Capaian target per kontrak</h3>
+        <p class="rp-cap">Realisasi kWh dibanding target RAB. Klik salah satu untuk memfilter seluruh dashboard.</p>
+        <div class="rp-gauges" data-draw="gauges" data-source="capaian"></div>
+      </div>
+      <div class="rp-card wide">
+        <h3>Realisasi vs target per kontrak</h3>
+        <p class="rp-cap">Batang berwarna = realisasi per kategori; garis putih = target RAB.</p>
+        <div class="rp-legend" data-draw="leg-kontrak" data-source="capaian"></div>
+        <div class="rp-chart" data-draw="ch-kontrak" data-source="capaian"></div>
+      </div>
+    </div>
+  </section>
+
   <section class="rp-sec" id="kontrak">
     <h2>Capaian per kontrak</h2>
     <div class="rp-card">
@@ -174,6 +202,7 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
       <div class="rp-card">
         <h3>Komposisi umur seluruh penggantian kWh</h3>
         <p class="rp-cap">Umur = tahun penggantian − tahun pembuatan meter lama.</p>
+        <div class="rp-donut" data-draw="dn-usia" data-source="rekap_usia"></div>
         <div class="rp-clu" data-draw="clu-tiles" data-source="rekap_usia"></div>
       </div>
       <div class="rp-card">
@@ -196,7 +225,12 @@ body.is-loading #dash-root .val, body.is-loading #dash-root .rp-chart, body.is-l
       </div>
     </div>
     <div class="rp-grid">
-      <div class="rp-card wide">
+      <div class="rp-card">
+        <h3>Porsi kelompok alasan</h3>
+        <p class="rp-cap">Setiap irisan satu kelompok alasan penggantian.</p>
+        <div class="rp-donut" data-draw="dn-alasan" data-source="rekap_alasan"></div>
+      </div>
+      <div class="rp-card">
         <h3>Kelompok alasan, dipecah per umur meter</h3>
         <p class="rp-cap">Alasan dari kolom ALASAN GANTI METER; bila kosong, dari kolom KETERANGAN.</p>
         <div class="rp-legend" data-draw="leg-alasan" data-source="rekap_alasan"></div>
