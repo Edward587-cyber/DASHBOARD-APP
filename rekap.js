@@ -199,17 +199,19 @@
         const row = {
           kontraktor: cf.id, tahun: cf.tahun, lot: c.nama_kontrak ? ((String(c.nama_kontrak).match(/LOT\s*(\d+)/i) || [])[1] || String(cf.lot || '')) : String(cf.lot || ''),
           pelaksana: c.pelaksana || ('PT ' + cf.nama).toUpperCase(), nomor_kontrak: c.nomor_kontrak || '',
-          tanggal_awal: c.tanggal_awal || '', tanggal_akhir: c.tanggal_akhir || '', jumlah_amandemen: c.jumlah_amandemen || 0,
+          tanggal_awal: c.tanggal_awal || '', tanggal_akhir: c.tanggal_akhir || '', tanggal_akhir_awal: c.tanggal_akhir_awal || '', jumlah_amandemen: c.jumlah_amandemen || 0,
           nilai_kontrak: c.nilai_kontrak || 0, total_tagihan: c.total_tagihan || 0, tagihan_terakhir: c.tagihan_terakhir || '',
           target_1p: Number(rab.volume_1p || 0), target_3p: Number(rab.volume_3p || 0), target_kwh: Number(rab.target_kwh || 0),
           paska_1p: real(cf.id, 'PASKA 1 PHASA'), prabayar_1p: real(cf.id, 'PRABAYAR 1 PHASA'), prabayar_3p: real(cf.id, 'PRABAYAR 3 PHASA'),
           periksa: real(cf.id, 'PERIKSA'), meter_box: real(cf.id, 'METER BOX'), box_combo: real(cf.id, 'BOX COMBO'),
           realisasi_rab: Number(rab.rab_realisasi_1p || 0) + Number(rab.rab_realisasi_3p || 0), sebelum_spj: sebelum,
+          nilai_rab_ppn: Number(rab.nilai_rab_ppn || 0), nilai_realisasi_ppn: Number(rab.nilai_realisasi_ppn || 0),
         };
         row.realisasi_1p = row.paska_1p + row.prabayar_1p;
         row.realisasi_kwh = row.realisasi_1p + row.prabayar_3p;
         row.persen = row.target_kwh ? row.realisasi_kwh / row.target_kwh : null;
         row.selisih = row.realisasi_kwh - row.target_kwh;
+        row.persen_rupiah = row.nilai_rab_ppn ? row.nilai_realisasi_ppn / row.nilai_rab_ppn : null;
         out.push(row);
       });
       const tahunList = Array.from(new Set(ctx.list.map((c) => c.tahun)));
@@ -217,8 +219,9 @@
         const rs = out.filter((r) => r.tahun === th);
         const sum = (f) => rs.reduce((s, r) => s + Number(r[f] || 0), 0);
         const all = { kontraktor: 'SEMUA-' + th, tahun: th, lot: '', pelaksana: 'TOTAL ' + rs.length + ' KONTRAK ' + th, nomor_kontrak: '', tanggal_awal: '', tanggal_akhir: '', tagihan_terakhir: '' };
-        ['jumlah_amandemen', 'nilai_kontrak', 'total_tagihan', 'target_1p', 'target_3p', 'target_kwh', 'paska_1p', 'prabayar_1p', 'prabayar_3p', 'periksa', 'meter_box', 'box_combo', 'realisasi_rab', 'sebelum_spj', 'realisasi_1p', 'realisasi_kwh', 'selisih'].forEach((f) => { all[f] = sum(f); });
+        ['jumlah_amandemen', 'nilai_kontrak', 'total_tagihan', 'target_1p', 'target_3p', 'target_kwh', 'paska_1p', 'prabayar_1p', 'prabayar_3p', 'periksa', 'meter_box', 'box_combo', 'realisasi_rab', 'sebelum_spj', 'realisasi_1p', 'realisasi_kwh', 'selisih', 'nilai_rab_ppn', 'nilai_realisasi_ppn'].forEach((f) => { all[f] = sum(f); });
         all.persen = all.target_kwh ? all.realisasi_kwh / all.target_kwh : null;
+        all.persen_rupiah = all.nilai_rab_ppn ? all.nilai_realisasi_ppn / all.nilai_rab_ppn : null;
         out.push(all);
       });
       return out;
