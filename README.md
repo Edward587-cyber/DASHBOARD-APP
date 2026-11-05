@@ -51,3 +51,14 @@ Di setiap spreadsheet: **Bagikan → Akses umum → Siapa saja yang memiliki lin
 3. Tahun 2027 otomatis muncul di filter **Tahun kontrak**; dashboard terbuka di tahun terbaru.
 
 Spreadsheet baru harus memakai judul kolom yang sama (IDPEL, TANGGAL PENGGANTIAN, ALASAN GANTI METER, METER LAMA → TAHUN, dst.) dan nama sheet PASKA 1 PHASA, PRABAYAR 1 PHASA, PRABAYAR 3 PHASA, PERIKSA, METER BOX, BOX COMBO, RAB. Data kontrak dicocokkan ke LIST TAGIHAN lewat awalan nomor SPJ dan tahunnya.
+
+## Data DIL (peta umur & realisasi)
+Bagian "Peta umur & DIL" membaca `data/dil/ringkasan.json` dan `data/dil/detail.json`, hasil perbandingan dua DIL SALDO.
+Untuk memperbarui dengan DIL bulan baru:
+```
+pip install pandas python-calamine
+python tools/olah_dil.py DIL_SALDO_MASK_202506_54720_CIRACAS.xlsx DIL_SALDO_MASK_<bulan_baru>_54720_CIRACAS.xlsx
+```
+lalu commit folder `data/dil/` dan naikkan `DIL_VERSI` di `index.html`.
+Aturan: pelanggan AKTIF di DIL awal yang punya NOMOR_METER_KWH; terganti bila nomor meternya di DIL akhir berbeda.
+Umur = tahun DIL awal − TAHUN_BUAT_METER_KWH (bila kosong, TAHUN_TERA). Target: Paskabayar ≥ 15 tahun, Prabayar ≥ 10 tahun (ubah di `UMUR_PASKA` / `UMUR_PRA`).
