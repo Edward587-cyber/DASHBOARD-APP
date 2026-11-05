@@ -194,6 +194,10 @@ body { background: var(--color-bg); }
   #dash-root .rp-kpis { grid-template-columns: minmax(0, 1fr); }
   #dash-root .rp-kpi.main { grid-column: auto; }
 }
+#dash-root .rp-loading { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 180px; width: 100%; color: var(--color-fg-muted); font-size: .9rem; }
+#dash-root .rp-loading .spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--color-border-line); border-top-color: var(--accent); animation: rpspin .9s linear infinite; }
+@keyframes rpspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { #dash-root .rp-loading .spin { animation: none; } }
 </style>
 </head>
 <body>
