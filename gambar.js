@@ -58,7 +58,7 @@
     if (tot) { chip('Meter ≥ 15 tahun', pf.format(of('≥ 15 tahun') / tot)); chip('Meter < 5 tahun', pf.format(of('< 5 tahun') / tot)); }
     const al = rowsOf('rekap_alasan').filter((x) => x.kontraktor === K() && x.kategori === 'PENGGANTIAN KWH').sort((a, b) => b.jumlah - a.jumlah);
     const ta = d3.sum(al, (x) => x.jumlah);
-    if (al[0] && ta) chip(al[0].kelompok_alasan, pf.format(al[0].jumlah / ta));
+    if (al[0] && ta) chip('Alasan terbanyak · ' + al[0].kelompok_alasan.toLowerCase(), pf.format(al[0].jumlah / ta));
   });
   // KPI
   dash.draw('kpi-total', (el) => { const r = capRow(); el.dataset.where = 'kontraktor=' + esc(K()); el.textContent = r ? nf.format(r.realisasi_kwh) : '—'; });
