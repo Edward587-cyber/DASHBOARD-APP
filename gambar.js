@@ -581,5 +581,96 @@
         tb.append(tr);
       });
   });
+  // ---------- realisasi per vendor menurut tanggal ----------
+  const VKAT = [['PASKA 1 PHASA', 'Paska 1P'], ['PRABAYAR 1 PHASA', 'Prabayar 1P'], ['PRABAYAR 3 PHASA', 'Prabayar 3P']];
+  const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const hariIni = () => iso(new Date());
+  const tglTerakhir = () => {
+    const rows = rowsOf('rekap_harian').filter((r) => Number(r.tahun) === TH() && r.tanggal <= hariIni());
+    return rows.length ? rows[rows.length - 1].tanggal : hariIni();
+  };
+  const VH = () => {
+    const p = dash.params();
+    const mode = p.vhm || 'pada';
+    const sampai = p.vhs || tglTerakhir();
+    const dari = mode === 'pada' ? sampai : mode === 'sd' ? '0000-00-00' : (p.vhd || sampai.slice(0, 8) + '01');
+    return { mode, dari, sampai };
+  };
+  const fmtTgl = (t) => { if (!t || t.startsWith('0000')) return ''; const [y, m, d] = t.split('-'); return +d + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][+m - 1] + ' ' + y; };
+  (() => {
+    const mode = document.getElementById('vh-mode'), dari = document.getElementById('vh-dari'), sampai = document.getElementById('vh-sampai');
+    if (!mode) return;
+    mode.addEventListener('change', () => dash.setParams({ vhm: mode.value }));
+    const tgl = (el, key) => el.addEventListener('change', () => { if (el.value && el.validity.valid) dash.setParams({ [key]: el.value }); });
+    tgl(dari, 'vhd'); tgl(sampai, 'vhs');
+    document.querySelectorAll('#dash-root [data-vh]').forEach((b) => b.addEventListener('click', () => {
+      const d = new Date();
+      if (b.dataset.vh === 'terakhir') dash.setParams({ vhm: 'pada', vhs: null });
+      if (b.dataset.vh === 'kemarin') { d.setDate(d.getDate() - 1); dash.setParams({ vhm: 'pada', vhs: iso(d) }); }
+      if (b.dataset.vh === 'bulan') dash.setParams({ vhm: 'rentang', vhd: hariIni().slice(0, 8) + '01', vhs: hariIni() });
+      if (b.dataset.vh === 'sd') dash.setParams({ vhm: 'sd', vhs: hariIni() });
+    }));
+    dash.onData(() => {
+      const v = VH();
+      mode.value = v.mode;
+      document.getElementById('vh-dari-wrap').hidden = v.mode !== 'rentang';
+      document.getElementById('vh-sampai-lbl').textContent = v.mode === 'rentang' ? 'Sampai' : v.mode === 'sd' ? 'S.d. tanggal' : 'Tanggal';
+      if (document.activeElement !== sampai) sampai.value = v.sampai;
+      if (document.activeElement !== dari && v.mode === 'rentang') dari.value = v.dari;
+    });
+  })();
+  dash.draw('vendor-cap', (el) => {
+    if (!ok('rekap_harian')) { el.textContent = 'Memuat data…'; return; }
+    const v = VH();
+    el.textContent = v.mode === 'pada' ? 'Realisasi pada ' + fmtTgl(v.sampai) : v.mode === 'sd' ? 'Realisasi kumulatif sampai dengan ' + fmtTgl(v.sampai) + ' (garis putus = target RAB)' : 'Realisasi ' + fmtTgl(v.dari) + ' – ' + fmtTgl(v.sampai);
+  });
+  dash.draw('leg-vendor', (el) => { if (!ok('rekap_harian')) { el.replaceChildren(); return; } legend(el, [...VKAT.map(([, l], i) => [dash.colors[i], 1, l]), ...(VH().mode === 'sd' ? [['var(--color-fg)', 1, 'Target RAB']] : [])]); });
+  dash.draw('ch-vendor', (el) => {
+    if (!guard(el, 'rekap_harian')) return;
+    el.replaceChildren();
+    const v = VH();
+    const daftar = window.APP.kontrakTahun(TH());
+    const rows = rowsOf('rekap_harian').filter((r) => Number(r.tahun) === TH() && r.tanggal >= v.dari && r.tanggal <= v.sampai);
+    const cap = rowsOf('capaian');
+    const data = daftar.map((c) => {
+      const o = { id: c.id, label: 'Lot ' + c.lot, nama: c.nama, target: Number((cap.find((x) => x.kontraktor === c.id) || {}).target_kwh || 0) };
+      VKAT.forEach(([k]) => { o[k] = d3.sum(rows.filter((r) => r.kontraktor === c.id && r.kategori === k), (r) => r.jumlah); });
+      o.total = d3.sum(VKAT, ([k]) => o[k]);
+      return o;
+    });
+    const tot = d3.sum(data, (d) => d.total);
+    const W = el.clientWidth || 700, H = 300, B = 46;
+    const svgN = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); el.append(svgN); el.style.minHeight = H + 'px';
+    const svg = d3.select(svgN).attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+    const ymax = d3.max(data, (d) => Math.max(d.total, v.mode === 'sd' ? d.target : 0)) || 1;
+    const y = d3.scaleLinear([0, ymax * 1.12], [H - B, 30]).nice();
+    const t0 = svg.append('text').text(nf.format(y.domain()[1])); const L = t0.node().getComputedTextLength() + 12; t0.remove();
+    const x = d3.scaleBand(data.map((d) => d.id), [L, W - 8]).padding(0.35);
+    y.ticks(5).forEach((t) => {
+      svg.append('line').attr('x1', L).attr('x2', W - 8).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', L - 6).attr('y', y(t)).attr('dy', '0.35em').attr('text-anchor', 'end').text(nf.format(t));
+    });
+    const bw = Math.min(90, x.bandwidth());
+    data.forEach((d) => {
+      const x0 = x(d.id) + (x.bandwidth() - bw) / 2;
+      let acc = 0;
+      VKAT.forEach(([k, l], i) => {
+        const val = d[k]; if (!val) return;
+        svg.append('rect').attr('x', x0).attr('width', bw).attr('y', y(acc + val)).attr('height', Math.max(0, y(acc) - y(acc + val) - 1)).attr('rx', 3).attr('fill', dash.colors[i])
+          .on('mousemove', (ev) => showTip(el, ev, d.label + ' · ' + d.nama, [...VKAT.map(([kk, ll], j) => [dash.colors[j], 1, ll, nf.format(d[kk])]), [null, 1, 'Total', nf.format(d.total)], ...(v.mode === 'sd' && d.target ? [[null, 1, 'Capaian target', pf.format(d.total / d.target)]] : [])]))
+          .on('mouseleave', () => hideTip(el));
+        acc += val;
+      });
+      if (v.mode === 'sd' && d.target) svg.append('line').attr('x1', x0 - 10).attr('x2', x0 + bw + 10).attr('y1', y(d.target)).attr('y2', y(d.target)).attr('stroke', 'var(--color-fg)').attr('stroke-width', 2).attr('stroke-dasharray', '6 4');
+      const sempit = x.step() < 150 && v.mode === 'sd' && d.target;
+      const yl = y(Math.max(d.total, v.mode === 'sd' ? d.target : 0)) - 8;
+      if (sempit) svg.append('text').attr('x', x0 + bw / 2).attr('y', yl - 16).attr('text-anchor', 'middle').attr('font-size', 11).text(pf.format(d.total / d.target));
+      const lbl = nf.format(d.total) + (!sempit && v.mode === 'sd' && d.target ? ' · ' + pf.format(d.total / d.target) : '');
+      svg.append('text').attr('class', 'strong').attr('x', x0 + bw / 2).attr('y', yl).attr('text-anchor', 'middle').attr('font-weight', 700).text(lbl);
+      svg.append('text').attr('class', 'strong').attr('x', x0 + bw / 2).attr('y', H - B + 18).attr('text-anchor', 'middle').text(d.label);
+      if (x.step() >= 150) svg.append('text').attr('x', x0 + bw / 2).attr('y', H - B + 34).attr('text-anchor', 'middle').text(d.nama);
+    });
+    if (!tot) svg.append('text').attr('x', (L + W) / 2).attr('y', H / 2 - 10).attr('text-anchor', 'middle').text('Tidak ada penggantian tercatat pada tanggal ini');
+  });
   window.RP = { hstack, donut, showTip, hideTip, legend, memuat, failed, nf, pf, CL, clColor };
 })();

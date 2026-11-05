@@ -44,10 +44,13 @@
     const mode = mdy > dmy ? 'mdy' : 'dmy';
     return raws.map((r) => {
       if (!r) return null;
-      const mo = r.fix ? r.b : r.a > 12 ? r.b : r.b > 12 ? r.a : mode === 'mdy' ? r.a : r.b;
+      const mdy = !r.fix && (r.a > 12 ? false : r.b > 12 ? true : mode === 'mdy');
+      const mo = mdy ? r.a : r.b;
+      const dd = mdy ? r.b : r.a;
       const y = r.y < 100 ? 2000 + r.y : r.y;
       if (!(mo >= 1 && mo <= 12) || y < 2015 || y > 2035) return null;
-      return y + '-' + String(mo).padStart(2, '0');
+      const ok = dd >= 1 && dd <= 31;
+      return y + '-' + String(mo).padStart(2, '0') + (ok ? '-' + String(dd).padStart(2, '0') : '');
     });
   };
   const tahunOf = (v) => { const m = String(v ?? '').match(/(19[5-9]\d|20[0-3]\d)/); return m ? +m[1] : null; };
@@ -96,7 +99,8 @@
     for (let i = 0; i < n; i++) {
       const id = String(cols.idpel[i] ?? '').replace(/\s/g, '');
       if (!/^\d{6,}$/.test(id)) continue;
-      const bulan = dates[i];
+      const tgl = dates[i] || '';
+      const bulan = tgl.slice(0, 7);
       const th = tahunOf(cols.tahun[i]);
       const ref = bulan ? +bulan.slice(0, 4) : new Date().getFullYear();
       let us = th == null ? null : ref - th;
@@ -104,7 +108,7 @@
       const al = String(cols.alasan[i] ?? '').replace(/\s+/g, ' ').trim();
       const kt = String(cols.ket[i] ?? '').replace(/\s+/g, ' ').trim();
       const raw = al && al !== '-' ? al : kt;
-      out.push({ kategori, jenis: 'Meter', bulan: bulan || '', tahun_meter: th, usia: us, cluster_usia: cluster(us), alasan: raw ? raw.toUpperCase() : '(KOSONG)', kelompok_alasan: kelompok(raw), merk_lama: norm(cols.merk[i]) || '-', pekerjaan: '', volume: 1 });
+      out.push({ kategori, jenis: 'Meter', bulan: bulan || '', tanggal: tgl.length === 10 ? tgl : '', tahun_meter: th, usia: us, cluster_usia: cluster(us), alasan: raw ? raw.toUpperCase() : '(KOSONG)', kelompok_alasan: kelompok(raw), merk_lama: norm(cols.merk[i]) || '-', pekerjaan: '', volume: 1 });
     }
     return out;
   };

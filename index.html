@@ -355,6 +355,9 @@ body { background: var(--color-bg); }
 #dash-root .rp-kseg button small { display: block; font-size: .72rem; font-weight: 500; opacity: .75; }
 #dash-root .rp-dds { display: flex; flex-wrap: wrap; gap: 10px; }
 #dash-root .rp-dd { display: inline-flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: .08em; }
+#dash-root .rp-dd input[type=date] { font: inherit; font-size: .9rem; font-weight: 600; color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 10px; padding: 7px 10px; color-scheme: dark; }
+#dash-root .rp-dd[hidden] { display: none; }
+#vendor-harian .rp-dds, #vendor-harian .rp-dd { max-width: 100%; min-width: 0; } #vendor-harian .rp-dd select { max-width: 100%; min-width: 0; flex: 1 1 auto; } #vendor-harian .rp-toolbar > * { min-width: 0; max-width: 100%; }
 #dash-root .rp-dd select { font: inherit; text-transform: none; letter-spacing: 0; font-size: .9rem; font-weight: 600; color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 10px; padding: 8px 32px 8px 12px; min-width: 12rem; cursor: pointer; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
 #dash-root .rp-dd select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #dash-root .rp-dd select option { background: #0f2530; color: var(--color-fg); }
@@ -502,6 +505,28 @@ body { background: var(--color-bg); }
   <section class="rp-sec" id="komposisi" data-tab="ringkasan">
     <h2>Komposisi dan capaian</h2>
     <div class="rp-grid">
+      <div class="rp-card wide" id="vendor-harian">
+        <div class="rp-ch"><h3>Realisasi ganti meter per vendor</h3><p class="rp-cap" data-draw="vendor-cap">Pilih tanggal; grafik langsung menghitung ulang realisasi tiap PT (Paska 1P + Prabayar 1P + Prabayar 3P).</p></div>
+        <div class="rp-toolbar">
+          <div class="rp-dds">
+            <label class="rp-dd"><span>Tampilkan</span><select id="vh-mode" aria-label="Cara memilih tanggal">
+              <option value="pada">Pada tanggal</option>
+              <option value="sd">Kumulatif s.d. tanggal</option>
+              <option value="rentang">Rentang tanggal</option>
+            </select></label>
+            <label class="rp-dd" id="vh-dari-wrap" hidden><span>Dari</span><input id="vh-dari" type="date" min="2024-01-01" max="2099-12-31"></label>
+            <label class="rp-dd"><span id="vh-sampai-lbl">Tanggal</span><input id="vh-sampai" type="date" min="2024-01-01" max="2099-12-31"></label>
+          </div>
+          <div class="rp-seg" role="group" aria-label="Pilihan cepat tanggal">
+            <button type="button" data-vh="terakhir">Data terakhir</button>
+            <button type="button" data-vh="kemarin">Kemarin</button>
+            <button type="button" data-vh="bulan">Bulan ini</button>
+            <button type="button" data-vh="sd">S.d. hari ini</button>
+          </div>
+        </div>
+        <div class="rp-legend" data-draw="leg-vendor" data-source="rekap_harian"></div>
+        <div class="rp-chart" data-draw="ch-vendor" data-source="rekap_harian"></div>
+      </div>
       <div class="rp-card">
         <div class="rp-ch"><h3>Komposisi realisasi per kategori</h3><p class="rp-cap">Porsi pelanggan per sheet pekerjaan (box combo dalam unit box).</p></div>
         <div class="rp-donut" data-draw="dn-kategori" data-source="rekap_kategori"></div>
@@ -757,10 +782,10 @@ body { background: var(--color-bg); }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="config.js?v=20261105-11"></script>
-<script src="sumber.js?v=20261105-19"></script>
+<script src="sumber.js?v=20261105-28"></script>
 <script src="app.js?v=20261105-11"></script>
-<script src="rekap.js?v=20261105-24"></script>
-<script src="gambar.js?v=20261105-27"></script>
+<script src="rekap.js?v=20261105-28"></script>
+<script src="gambar.js?v=20261105-28"></script>
 <script src="tata.js?v=20261105-23"></script>
 <script>window.DIL_VERSI = "202412-202609-1";</script>
 <script src="materi.js?v=20261105-20" defer></script>
