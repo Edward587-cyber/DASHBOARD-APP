@@ -1,7 +1,7 @@
 // Pengaturan dashboard. Ubah di sini bila ada kontrak/spreadsheet baru.
 window.DASH_CONFIG = {
   // API key Google (Sheets API). Lihat README.md langkah 2.
-  apiKey: 'ISI_API_KEY_DI_SINI',
+  apiKey: 'AIzaSyCkbnLe1J7XaaGwIvZjPT2SIfXwguHWMt8',
 
   // Muat ulang otomatis (menit). 0 = matikan.
   refreshMinutes: 10,
