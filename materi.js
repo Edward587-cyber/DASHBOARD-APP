@@ -39,6 +39,7 @@
   // ---------- RKM dari DIL ----------
   function rkmDariDil() {
     const r = window.DIL_RING; if (!r) return false;
+    M.rkm.dariDil = r.periode_awal + '-' + r.periode_akhir;
     const th = String(Number(dash.params().tahun) || new Date().getFullYear());
     let ct = 0, cr = 0;
     BL.forEach((_, i) => {
@@ -339,8 +340,10 @@
     $('#mt-reset')?.addEventListener('click', () => { const p = M.periode; M = bawaan(); M.periode = p; simpan(); bukaForm(); gambarSemua(); info('Isian dikembalikan ke contoh bawaan.'); });
     $('#mt-json')?.addEventListener('click', () => unduhUrl(URL.createObjectURL(new Blob([JSON.stringify(M, null, 2)], { type: 'application/json' })), 'isian_materi_' + M.periode.replace(/\s+/g, '_') + '.json'));
     $('#mt-impor')?.addEventListener('change', (e) => { const f = e.target.files[0]; if (!f) return; f.text().then((t) => { M = Object.assign(bawaan(), JSON.parse(t)); simpan(); bukaForm(); gambarSemua(); info('Isian dimuat dari file.'); }).catch(() => info('File isian tidak valid.')); });
-    if (!M.rkm.bulan.some((b) => b.rTua !== '')) window.addEventListener('dil-siap', () => { if (rkmDariDil()) { simpan(); bukaForm(); gambarSemua(); } }, { once: true });
-    if (window.DIL_RING && !M.rkm.bulan.some((b) => b.rTua !== '')) { rkmDariDil(); simpan(); }
+    // isi ulang dari DIL bila tabel masih kosong atau sebelumnya diisi dari DIL periode lain
+    const perluIsi = (r) => !M.rkm.bulan.some((b) => b.rTua !== '') || (M.rkm.dariDil && r && M.rkm.dariDil !== r.periode_awal + '-' + r.periode_akhir);
+    window.addEventListener('dil-siap', () => { if (perluIsi(window.DIL_RING) && rkmDariDil()) { simpan(); bukaForm(); gambarSemua(); } }, { once: true });
+    if (window.DIL_RING && perluIsi(window.DIL_RING)) { rkmDariDil(); simpan(); }
     bukaForm();
     dash.onData(() => { if (pilih === 'kontrak') jadwal(); });
     window.addEventListener('resize', jadwal);
