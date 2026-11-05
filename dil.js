@@ -167,6 +167,7 @@
     target_terganti: ['Target umur · sudah terganti', (r, c) => r[c.TARGET_UMUR] === 'YA' && r[c.STATUS] === 'Terganti'],
     target_semua: ['Semua target umur', (r, c) => r[c.TARGET_UMUR] === 'YA'],
     terganti_semua: ['Semua meter terganti (semua umur)', (r, c) => r[c.STATUS] === 'Terganti'],
+    tahun_kosong: ['Tahun lama kosong · meter baru ≥ 2025', (r, c) => String(r[c.VALIDASI]).startsWith('Terganti · tahun lama kosong')],
   };
   async function buka(sandi) {
     const buf = new Uint8Array(await fetch('data/dil/detail.enc' + V).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); }));
@@ -233,6 +234,7 @@
 
   // ---------- klasifikasi (pie) ----------
   const VCOL = { 'Terganti · tervalidasi': 'var(--color-ok)', 'Terganti · perlu cek tahun meter baru': 'var(--color-warn)', 'Belum terganti': 'var(--color-bad)', 'Tidak ada / nomor kosong di DIL akhir': 'var(--cds-chart-muted)' };
+  const KOSONG = (v) => String(v).startsWith('Terganti · tahun lama kosong');
   const VORD = Object.keys(VCOL);
   function klasifikasi() {
     const k = S.ring.klasifikasi || [];
@@ -250,11 +252,25 @@
       const items = [
         { label: 'Meter tua · Paskabayar ≥ 15 th', value: sum(pick(g, (r) => r.target && r.jenis === 'Paskabayar'), 'jumlah'), color: 'var(--c1)' },
         { label: 'Meter tua · Prabayar ≥ 10 th', value: sum(pick(g, (r) => r.target && r.jenis === 'Prabayar'), 'jumlah'), color: 'var(--c2)' },
-        { label: 'Bukan meter tua · Paskabayar', value: sum(pick(g, (r) => !r.target && r.jenis === 'Paskabayar'), 'jumlah'), color: 'var(--c3)' },
-        { label: 'Bukan meter tua · Prabayar', value: sum(pick(g, (r) => !r.target && r.jenis === 'Prabayar'), 'jumlah'), color: 'var(--c4)' },
+        { label: 'Bukan meter tua · Paskabayar', value: sum(pick(g, (r) => !r.target && !KOSONG(r.validasi) && r.jenis === 'Paskabayar'), 'jumlah'), color: 'var(--c3)' },
+        { label: 'Bukan meter tua · Prabayar', value: sum(pick(g, (r) => !r.target && !KOSONG(r.validasi) && r.jenis === 'Prabayar'), 'jumlah'), color: 'var(--c4)' },
+        { label: 'Tahun lama kosong · meter baru ≥ 2025', value: sum(pick(g, (r) => KOSONG(r.validasi)), 'jumlah'), color: 'var(--c6)' },
       ];
       const tot = d3.sum(items, (x) => x.value), tua = items[0].value + items[1].value;
       R.donut(box, items, tot ? pf.format(tua / tot) : '—', 'meter tua');
+    }
+    const bk = $('#dil-pie-kosong');
+    if (bk) {
+      const pop = sum(pick(S.ring.per_jenis_umur, (r) => r.cluster === 'Tahun tidak tercatat' && jenisOk(r)), 'jumlah');
+      const kj = pick(k, (r) => jenisOk(r));
+      const isi = sum(pick(kj, (r) => KOSONG(r.validasi)), 'jumlah');
+      const lain = sum(pick(S.ring.per_jenis_umur, (r) => r.cluster === 'Tahun tidak tercatat' && jenisOk(r)), 'terganti') - isi;
+      const items = [
+        { label: 'Terganti · tahun buat baru ≥ 2025', value: isi, color: 'var(--color-ok)' },
+        { label: 'Nomor meter berubah, tahun buat baru < 2025 / kosong', value: Math.max(0, lain), color: 'var(--color-warn)' },
+        { label: 'Belum terganti / tetap kosong', value: Math.max(0, pop - isi - Math.max(0, lain)), color: 'var(--color-bad)' },
+      ];
+      R.donut(bk, items, pop ? pf.format(isi / pop) : '—', 'terganti');
     }
   }
 
@@ -284,7 +300,7 @@
 
   async function mulai() {
     pasang();
-    ['#dil-umur', '#dil-bulan', '#dil-merk', '#dil-pie-paska', '#dil-pie-pra', '#dil-pie-semua'].forEach((s) => { const e = $(s); if (e) R.memuat(e); });
+    ['#dil-umur', '#dil-bulan', '#dil-merk', '#dil-pie-paska', '#dil-pie-pra', '#dil-pie-semua', '#dil-pie-kosong'].forEach((s) => { const e = $(s); if (e) R.memuat(e); });
     try {
       S.ring = await fetch('data/dil/ringkasan.json' + V).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
       gambar();

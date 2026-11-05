@@ -15,6 +15,7 @@ from python_calamine import CalamineWorkbook
 
 UMUR_PASKA = 15   # paskabayar dihitung target bila umur >= 15 tahun
 UMUR_PRA = 10     # prabayar dihitung target bila umur >= 10 tahun
+TAHUN_MIN_BARU = 2025  # tahun buat lama kosong + tahun buat baru >= ini -> dihitung terganti
 COLS = ['IDPEL', 'TARIF', 'DAYA', 'JENISLAYANAN', 'NOMOR_METER_KWH', 'TANGGAL_PASANG_RUBAH_APP', 'MERK_METER_KWH',
         'TYPE_METER_KWH', 'TAHUN_TERA_METER_KWH', 'TAHUN_BUAT_METER_KWH', 'NOMOR_GARDU', 'STATUS_DIL',
         'KOORDINAT_X', 'KOORDINAT_Y']
@@ -110,11 +111,16 @@ def main(f_awal, f_akhir, out='data/dil'):
         ['Tidak ada di DIL akhir', 'Nomor meter kosong', 'Terganti'], 'Belum terganti')
     m['JENIS'] = m.JENISLAYANAN.str.title()
     # Validasi dengan DIL akhir: terganti sah bila nomor meter berubah DAN tahun buat meter baru lebih baru dari meter lama.
+    # Tahun buat lama kosong: dihitung terganti bila tahun buat di DIL akhir >= TAHUN_MIN_BARU (walau nomor meter sama).
     tb = m.TAHUN_BUAT_METER_KWH_BARU
-    baru_lebih_baru = tb.notna() & (tb > m.TAHUN_METER.fillna(0))
+    lama_kosong = m.TAHUN_METER.isna()
+    kosong_terisi = lama_kosong & tb.notna() & (tb >= TAHUN_MIN_BARU)
+    m.loc[kosong_terisi & (m.STATUS == 'Belum terganti'), 'STATUS'] = 'Terganti'
+    baru_lebih_baru = ~lama_kosong & tb.notna() & (tb > m.TAHUN_METER)
     m['VALIDASI'] = np.select(
-        [(m.STATUS == 'Terganti') & baru_lebih_baru, m.STATUS == 'Terganti', m.STATUS == 'Belum terganti'],
-        ['Terganti · tervalidasi', 'Terganti · perlu cek tahun meter baru', 'Belum terganti'], 'Tidak ada / nomor kosong di DIL akhir')
+        [kosong_terisi, (m.STATUS == 'Terganti') & baru_lebih_baru, m.STATUS == 'Terganti', m.STATUS == 'Belum terganti'],
+        ['Terganti · tahun lama kosong, meter baru ≥ ' + str(TAHUN_MIN_BARU), 'Terganti · tervalidasi', 'Terganti · perlu cek tahun meter baru', 'Belum terganti'],
+        'Tidak ada / nomor kosong di DIL akhir')
     m['TARGET'] = ((m.JENISLAYANAN == 'PASKABAYAR') & (m.UMUR >= UMUR_PASKA)) | ((m.JENISLAYANAN == 'PRABAYAR') & (m.UMUR >= UMUR_PRA))
     m['CLUSTER'] = m.UMUR.map(cluster)
     m['MERK'] = m.MERK_METER_KWH.map(merk)
