@@ -237,6 +237,9 @@ body { background: var(--color-bg); }
 .rp-shell > .rp-main { grid-column: 2; }
 @media (max-width: 900px) { .rp-side { position: static; width: auto; } .rp-shell > .rp-main { grid-column: 1; } }
 #dash-root [data-tab][hidden] { display: none !important; }
+.rp-side { padding-top: 0; }
+.rp-brand { position: sticky; top: 0; z-index: 2; background: var(--color-side); margin: 0 -18px; padding: 28px 26px 18px; border-bottom: 1px solid var(--color-border-line); }
+@media (max-width: 900px) { .rp-side { padding-top: 16px; } .rp-brand { position: static; margin: 0; padding: 0 8px 6px; border-bottom: 0; } }
 .rp-side > * { flex-shrink: 0; }
 
 /* ===== Materi presentasi ===== */
