@@ -132,7 +132,9 @@
     const box = $('#dil-peta'); if (!box || !window.L) return;
     if (!map) {
       map = L.map(box, { preferCanvas: true, scrollWheelZoom: false, attributionControl: true });
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18, subdomains: 'abcd', attribution: '&copy; OpenStreetMap &copy; CARTO' }).addTo(map);
+      const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
+      L.tileLayer(esri + 'World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, attribution: 'Peta &copy; Esri, HERE, Garmin, &copy; OpenStreetMap' }).addTo(map);
+      L.tileLayer(esri + 'World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, pane: 'shadowPane' }).addTo(map);
     }
     if (layer) layer.remove();
     layer = L.layerGroup().addTo(map);
