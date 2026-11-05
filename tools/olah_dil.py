@@ -1,13 +1,14 @@
 """Bandingkan dua DIL SALDO (mis. 202506 dan 202609) dan buat data untuk dashboard.
 
 Pakai:  pip install pandas python-calamine
-        python tools/olah_dil.py DIL_SALDO_MASK_202506_...xlsx DIL_SALDO_MASK_202609_...xlsx
+        pip install cryptography
+        DIL_SANDI='kata-sandi' python tools/olah_dil.py DIL_SALDO_MASK_202506_...xlsx DIL_SALDO_MASK_202609_...xlsx
 
-Hasil: data/dil/ringkasan.json (rekap tanpa data pelanggan) dan data/dil/detail.json
+Hasil: data/dil/ringkasan.json (rekap tanpa data pelanggan) dan data/dil/detail.enc (terenkripsi AES-GCM dengan DIL_SANDI)
 (baris per pelanggan untuk unduhan: hanya pelanggan target umur atau yang meternya terganti;
 tanpa nama, alamat, dan koordinat).
 """
-import json, re, sys, os
+import json, re, sys, os, gzip
 import numpy as np
 import pandas as pd
 from python_calamine import CalamineWorkbook
@@ -72,6 +73,19 @@ def merk(m):
         if flat.startswith(k):
             return k
     return t.split(' ')[0]
+
+
+ITERASI = 310000
+
+
+def enkripsi(data, sandi):
+    # Format: 'DIL1' | salt(16) | iv(12) | ciphertext+tag. Kunci = PBKDF2-SHA256(sandi, salt, ITERASI).
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    from cryptography.hazmat.primitives import hashes
+    salt, iv = os.urandom(16), os.urandom(12)
+    key = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=ITERASI).derive(sandi.encode('utf-8'))
+    return b'DIL1' + salt + iv + AESGCM(key).encrypt(iv, data, None)
 
 
 def cluster(u):
@@ -152,8 +166,15 @@ def main(f_awal, f_akhir, out='data/dil'):
     d['UMUR'] = d.UMUR.astype('Int64').astype(str).replace('<NA>', '')
     d['TARGET_UMUR'] = np.where(d.TARGET_UMUR, 'YA', 'TIDAK')
     d = d.fillna('')
-    with open(os.path.join(out, 'detail.json'), 'w', encoding='utf-8') as f:
-        json.dump({'kolom': list(d.columns), 'baris': d.astype(str).values.tolist()}, f, ensure_ascii=False, separators=(',', ':'))
+    sandi = os.environ.get('DIL_SANDI')
+    if not sandi:
+        sys.exit('Isi kata sandi lewat variabel lingkungan DIL_SANDI agar data detail terenkripsi.')
+    raw = gzip.compress(json.dumps({'kolom': list(d.columns), 'baris': d.astype(str).values.tolist()}, ensure_ascii=False, separators=(',', ':')).encode('utf-8'))
+    with open(os.path.join(out, 'detail.enc'), 'wb') as f:
+        f.write(enkripsi(raw, sandi))
+    lama = os.path.join(out, 'detail.json')
+    if os.path.exists(lama):
+        os.remove(lama)
     print('populasi', len(m), '| detail', len(d), '|', m.STATUS.value_counts().to_dict())
     print(pd.crosstab([m.JENIS, m.TARGET], m.STATUS, margins=True))
 

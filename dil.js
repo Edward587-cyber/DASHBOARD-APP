@@ -1,4 +1,4 @@
-// Bagian "Peta umur meter (DIL)": membaca data/dil/ringkasan.json (rekap) dan, saat diunduh, data/dil/detail.json.
+// Bagian "Peta umur meter (DIL)": membaca data/dil/ringkasan.json (rekap) dan, saat diunduh, data/dil/detail.enc (terenkripsi).
 (() => {
   const R = window.RP;
   const { nf, pf } = R;
@@ -168,12 +168,27 @@
     target_semua: ['Semua target umur', (r, c) => r[c.TARGET_UMUR] === 'YA'],
     terganti_semua: ['Semua meter terganti (semua umur)', (r, c) => r[c.STATUS] === 'Terganti'],
   };
+  async function buka(sandi) {
+    const buf = new Uint8Array(await fetch('data/dil/detail.enc' + V).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); }));
+    if (String.fromCharCode(...buf.slice(0, 4)) !== 'DIL1') throw new Error('Format file tidak dikenal');
+    const salt = buf.slice(4, 20), iv = buf.slice(20, 32), data = buf.slice(32);
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(sandi), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    let plain;
+    try { plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data); } catch (e) { throw new Error('Kata sandi salah'); }
+    const txt = await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    return JSON.parse(txt);
+  }
   async function muatDetail() {
     if (S.detail) return S.detail;
-    $('#dil-dl-info').textContent = 'Mengambil data detail…';
-    const j = await fetch('data/dil/detail.json' + V).then((r) => r.json());
+    const inp = $('#dil-dl-sandi');
+    const sandi = inp ? inp.value : '';
+    if (!sandi) { $('#dil-dl-info').textContent = 'Masukkan kata sandi untuk membuka data detail.'; inp?.focus(); throw new Error('Kata sandi kosong'); }
+    $('#dil-dl-info').textContent = 'Membuka data detail…';
+    const j = await buka(sandi);
     const c = {}; j.kolom.forEach((k, i) => { c[k] = i; });
     S.detail = { kolom: j.kolom, baris: j.baris, c };
+    if (inp) { inp.value = ''; inp.disabled = true; inp.placeholder = 'Terbuka'; }
     const kels = Array.from(new Set(j.baris.map((r) => r[c.KELURAHAN]))).sort();
     const sel = $('#dil-dl-kel');
     sel.replaceChildren(new Option('Semua kelurahan', 'SEMUA'), ...kels.map((k) => new Option(k, k)));
@@ -230,11 +245,13 @@
     document.querySelectorAll('#dil [data-ds]').forEach((b) => b.addEventListener('click', () => { S.status = b.dataset.ds; peta(); tekan('#dil [data-ds]', 'ds', S.status); }));
     document.querySelectorAll('#dil [data-ks]').forEach((b) => b.addEventListener('click', () => { S.kelSort = b.dataset.ks; kelurahan(); tekan('#dil [data-ks]', 'ks', S.kelSort); }));
     $('#dil-kel-cari')?.addEventListener('input', (e) => { S.kelCari = e.target.value.trim().toUpperCase(); kelurahan(); });
-    $('#dil-dl-jenis')?.addEventListener('change', (e) => { D.jenis = e.target.value; hitungDl(); });
-    $('#dil-dl-kat')?.addEventListener('change', (e) => { D.kat = e.target.value; hitungDl(); });
-    $('#dil-dl-kel')?.addEventListener('change', (e) => { D.kel = e.target.value; hitungDl(); });
-    $('#dil-dl-siap')?.addEventListener('click', hitungDl);
-    document.querySelectorAll('#dil-unduh button[data-fmt]').forEach((b) => b.addEventListener('click', () => unduh(b.dataset.fmt).catch((e) => { $('#dil-dl-info').textContent = 'Gagal mengunduh: ' + e.message; })));
+    const coba = () => hitungDl().catch((e) => { $('#dil-dl-info').textContent = e.message === 'Kata sandi kosong' ? 'Masukkan kata sandi untuk membuka data detail.' : 'Gagal membuka: ' + e.message; });
+    $('#dil-dl-jenis')?.addEventListener('change', (e) => { D.jenis = e.target.value; if (S.detail) coba(); });
+    $('#dil-dl-kat')?.addEventListener('change', (e) => { D.kat = e.target.value; if (S.detail) coba(); });
+    $('#dil-dl-kel')?.addEventListener('change', (e) => { D.kel = e.target.value; if (S.detail) coba(); });
+    $('#dil-dl-siap')?.addEventListener('click', coba);
+    $('#dil-dl-sandi')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') coba(); });
+    document.querySelectorAll('#dil-unduh button[data-fmt]').forEach((b) => b.addEventListener('click', () => unduh(b.dataset.fmt).catch((e) => { $('#dil-dl-info').textContent = e.message === 'Kata sandi kosong' ? 'Masukkan kata sandi untuk membuka data detail.' : 'Gagal: ' + e.message; })));
     let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(gambar, 200); });
   }
 
