@@ -453,4 +453,88 @@
       svg.append('text').attr('x', x0 + bw / 2).attr('y', H - 12).attr('text-anchor', 'middle').text('Lot ' + r.lot + ' · ' + (cfgOf(r.kontraktor).key || ''));
     });
   });
+  // ---------- penyebab per umur & jenis ----------
+  const PU = () => dash.params().pu || '< 5 tahun';
+  const PJ = () => dash.params().pj || 'SEMUA';
+  document.querySelectorAll('#dash-root [data-pu]').forEach((b) => b.addEventListener('click', () => dash.setParams({ pu: b.dataset.pu })));
+  document.querySelectorAll('#dash-root [data-pj]').forEach((b) => b.addEventListener('click', () => dash.setParams({ pj: b.dataset.pj })));
+  dash.onData(() => {
+    document.querySelectorAll('#dash-root [data-pu]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pu === PU())));
+    document.querySelectorAll('#dash-root [data-pj]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pj === PJ())));
+  });
+  const pnRows = () => rowsOf('rekap_penyebab').filter((r) => r.kontraktor === K() && r.cluster_usia === PU());
+  const umurTxt = () => (PU() === 'Semua umur' ? 'semua umur' : 'umur ' + PU());
+  const grupKelompok = (rows, f) => {
+    const o = {};
+    rows.forEach((r) => { o[r.kelompok_alasan] = (o[r.kelompok_alasan] || 0) + Number(r[f] || 0); });
+    return Object.entries(o).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  };
+  const PAL = ['--c1', '--c6', '--c3', '--c2', '--c4', '--c7', '--c8', '--c5'];
+  const kelColor = {};
+  const colorOfKel = (k) => { if (!kelColor[k]) kelColor[k] = 'var(' + PAL[Object.keys(kelColor).length % PAL.length] + ')'; return kelColor[k]; };
+
+  dash.draw('pn-tiles', (el) => {
+    if (!guard(el, 'rekap_penyebab')) return;
+    el.replaceChildren();
+    const rows = pnRows();
+    const pas = d3.sum(rows, (r) => r.paskabayar), pra = d3.sum(rows, (r) => r.prabayar), tot = pas + pra;
+    const tile = (lbl, v, sub, key) => {
+      const d = document.createElement('div'); d.className = 'rp-kpi' + (PJ() === key ? ' on' : '');
+      const l = document.createElement('span'); l.className = 'lbl'; l.textContent = lbl;
+      const n = document.createElement('span'); n.className = 'val'; n.textContent = nf.format(v);
+      const s = document.createElement('span'); s.className = 'sub'; s.textContent = sub;
+      d.append(l, n, s); el.append(d);
+    };
+    tile('Meter diganti · ' + umurTxt(), tot, 'paskabayar + prabayar', 'SEMUA');
+    tile('Paskabayar', pas, tot ? pf.format(pas / tot) + ' dari total' : '—', 'paskabayar');
+    tile('Prabayar', pra, tot ? pf.format(pra / tot) + ' dari total' : '—', 'prabayar');
+  });
+
+  const pnBar = (el, f) => {
+    if (!guard(el, 'rekap_penyebab')) return;
+    const g = grupKelompok(pnRows(), f);
+    const tot = d3.sum(g, (x) => x[1]);
+    if (!g.length) { el.replaceChildren(); const p = document.createElement('p'); p.className = 'rp-cap'; p.textContent = 'Tidak ada penggantian untuk pilihan ini.'; el.append(p); return; }
+    const cats = g.map(([k, v]) => ({ label: k, total: v, end: nf.format(v) + ' · ' + pf.format(v / tot) }));
+    hstack(el, cats, (c) => [{ v: c.total, color: colorOfKel(c.label), op: 1 }], {
+      tip: (c) => {
+        const det = pnRows().filter((r) => r.kelompok_alasan === c.label && r[f] > 0).sort((a, b) => b[f] - a[f]).slice(0, 5);
+        return [[colorOfKel(c.label), 1, 'Jumlah', nf.format(c.total) + ' (' + pf.format(c.total / tot) + ')'], ...det.map((r) => [null, 1, r.alasan.toLowerCase(), nf.format(r[f])])];
+      },
+    });
+  };
+  dash.draw('ch-pn-paska', (el) => pnBar(el, 'paskabayar'));
+  dash.draw('ch-pn-pra', (el) => pnBar(el, 'prabayar'));
+  dash.draw('pn-cap-paska', (el) => { const t = d3.sum(pnRows(), (r) => r.paskabayar); el.textContent = ok('rekap_penyebab') ? nf.format(t) + ' meter · ' + umurTxt() : '—'; });
+  dash.draw('pn-cap-pra', (el) => { const t = d3.sum(pnRows(), (r) => r.prabayar); el.textContent = ok('rekap_penyebab') ? nf.format(t) + ' meter · ' + umurTxt() : '—'; });
+
+  dash.draw('leg-pn-merk', (el) => { if (!ok('rekap_penyebab_merk')) { el.replaceChildren(); return; } legend(el, [[dash.colors[0], 1, 'Paskabayar'], [dash.colors[1], 1, 'Prabayar']]); });
+  dash.draw('ch-pn-merk', (el) => {
+    if (!guard(el, 'rekap_penyebab_merk')) return;
+    const pj = PJ();
+    const rows = rowsOf('rekap_penyebab_merk').filter((r) => r.kontraktor === K() && r.cluster_usia === PU() && r.merk !== 'Tidak terbaca')
+      .map((r) => ({ ...r, nilai: pj === 'SEMUA' ? r.jumlah : r[pj] })).filter((r) => r.nilai > 0).sort((a, b) => b.nilai - a.nilai).slice(0, 12);
+    if (!rows.length) { el.replaceChildren(); const p = document.createElement('p'); p.className = 'rp-cap'; p.textContent = 'Tidak ada data merk untuk pilihan ini.'; el.append(p); return; }
+    const cats = rows.map((r) => ({ label: r.merk, total: r.nilai, pas: pj === 'prabayar' ? 0 : r.paskabayar, pra: pj === 'paskabayar' ? 0 : r.prabayar, end: nf.format(r.nilai) }));
+    hstack(el, cats, (c) => [{ v: c.pas, color: dash.colors[0], op: 1 }, { v: c.pra, color: dash.colors[1], op: 1 }], {
+      tip: (c) => [[dash.colors[0], 1, 'Paskabayar', nf.format(c.pas)], [dash.colors[1], 1, 'Prabayar', nf.format(c.pra)]],
+    });
+  });
+
+  dash.draw('tbl-pn', (tb) => {
+    tb.replaceChildren();
+    if (!ok('rekap_penyebab')) return;
+    const pj = PJ();
+    pnRows().filter((r) => (pj === 'SEMUA' ? r.jumlah : r[pj]) > 0)
+      .sort((a, b) => (pj === 'SEMUA' ? b.jumlah - a.jumlah : b[pj] - a[pj])).forEach((r) => {
+        const tr = document.createElement('tr');
+        tr.dataset.key = [r.kontraktor, r.cluster_usia, r.alasan].map(encodeURIComponent).join(',');
+        const td = (t, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = t; tr.append(c); return c; };
+        td(r.alasan, 'l wrap'); td(r.kelompok_alasan, 'l');
+        td(nf.format(r.paskabayar)); td(nf.format(r.prabayar_1p)); td(nf.format(r.prabayar_3p)); td(nf.format(r.jumlah));
+        td(r.merk_teratas_paska || '—', 'l'); td(r.merk_teratas_prabayar || '—', 'l');
+        td(r.rata_usia == null ? '—' : String(r.rata_usia).replace('.', ','));
+        tb.append(tr);
+      });
+  });
 })();

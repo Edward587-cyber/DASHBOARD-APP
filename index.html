@@ -206,6 +206,9 @@ body { background: var(--color-bg); }
 .rp-side-h span { color: var(--accent); }
 @media (max-width: 900px) { .rp-years { flex-wrap: nowrap; overflow-x: auto; } .rp-years button { flex: none; } }
 #dash-root .rp-table td.heat { color: var(--color-fg); }
+#dash-root .rp-kpis.rp-kpis3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { #dash-root .rp-kpis.rp-kpis3 { grid-template-columns: minmax(0, 1fr); } }
+#dash-root .rp-kpis3 .rp-kpi.on { border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -220,6 +223,7 @@ body { background: var(--color-bg); }
     <a href="#kontrak" data-nav="kontrak"><span aria-hidden="true">☰</span>Capaian per kontrak</a>
     <a href="#umur" data-nav="umur"><span aria-hidden="true">⏳</span>Cluster umur</a>
     <a href="#alasan" data-nav="alasan"><span aria-hidden="true">≋</span>Cluster alasan</a>
+    <a href="#penyebab" data-nav="penyebab"><span aria-hidden="true">⚑</span>Penyebab per umur</a>
     <a href="#tren" data-nav="tren"><span aria-hidden="true">↗</span>Tren bulanan</a>
     <a href="#catatan" data-nav="catatan"><span aria-hidden="true">Σ</span>Catatan</a>
   </nav>
@@ -397,6 +401,60 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
+  <section class="rp-sec" id="penyebab">
+    <h2>Penyebab ganti meter per umur</h2>
+    <div class="rp-toolbar">
+      <div class="rp-seg" role="group" aria-label="Pilih umur meter">
+        <button type="button" data-pu="&lt; 5 tahun" aria-pressed="true">&lt; 5 tahun</button>
+        <button type="button" data-pu="5 – &lt; 10 tahun" aria-pressed="false">5 – &lt; 10</button>
+        <button type="button" data-pu="10 – &lt; 15 tahun" aria-pressed="false">10 – &lt; 15</button>
+        <button type="button" data-pu="≥ 15 tahun" aria-pressed="false">≥ 15</button>
+        <button type="button" data-pu="Tahun tidak tercatat" aria-pressed="false">Tak tercatat</button>
+        <button type="button" data-pu="Semua umur" aria-pressed="false">Semua umur</button>
+      </div>
+      <div class="rp-seg" role="group" aria-label="Pilih jenis pelanggan">
+        <button type="button" data-pj="SEMUA" aria-pressed="true">Paska + Prabayar</button>
+        <button type="button" data-pj="paskabayar" aria-pressed="false">Paskabayar</button>
+        <button type="button" data-pj="prabayar" aria-pressed="false">Prabayar</button>
+      </div>
+    </div>
+    <div class="rp-kpis rp-kpis3" data-draw="pn-tiles" data-source="rekap_penyebab"></div>
+    <div class="rp-grid">
+      <div class="rp-card" id="penyebab-paska">
+        <div class="rp-ch"><h3>Paskabayar</h3><p class="rp-cap" data-draw="pn-cap-paska">—</p></div>
+        <div class="rp-chart" data-draw="ch-pn-paska" data-source="rekap_penyebab"></div>
+      </div>
+      <div class="rp-card" id="penyebab-prabayar">
+        <div class="rp-ch"><h3>Prabayar (1 &amp; 3 phasa)</h3><p class="rp-cap" data-draw="pn-cap-pra">—</p></div>
+        <div class="rp-chart" data-draw="ch-pn-pra" data-source="rekap_penyebab"></div>
+      </div>
+      <div class="rp-card wide">
+        <div class="rp-ch"><h3>Merk meter pada umur ini</h3><p class="rp-cap">Dua belas merk terbanyak, dipisah paskabayar dan prabayar.</p></div>
+        <div class="rp-legend" data-draw="leg-pn-merk" data-source="rekap_penyebab_merk"></div>
+        <div class="rp-chart" data-draw="ch-pn-merk" data-source="rekap_penyebab_merk"></div>
+      </div>
+      <div class="rp-card wide">
+        <div class="rp-ch"><h3>Rincian penyebab</h3><p class="rp-cap">Alasan seperti tertulis di sheet, untuk umur dan jenis yang dipilih.</p></div>
+        <div class="rp-tablebox">
+          <table class="rp-table" data-source="rekap_penyebab" data-row-key="kontraktor,cluster_usia,alasan">
+            <thead><tr>
+              <th class="l" data-field="alasan">Alasan</th>
+              <th class="l" data-field="kelompok_alasan">Kelompok</th>
+              <th data-field="paskabayar">Paskabayar</th>
+              <th data-field="prabayar_1p">Prabayar 1P</th>
+              <th data-field="prabayar_3p">Prabayar 3P</th>
+              <th data-field="jumlah">Jumlah</th>
+              <th class="l" data-field="merk_teratas_paska">Merk terbanyak (paska)</th>
+              <th class="l" data-field="merk_teratas_prabayar">Merk terbanyak (prabayar)</th>
+              <th data-field="rata_usia">Rata-rata umur (th)</th>
+            </tr></thead>
+            <tbody data-draw="tbl-pn"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="rp-sec" id="tren">
     <h2>Tren bulanan</h2>
     <div class="rp-grid">
@@ -425,11 +483,11 @@ body { background: var(--color-bg); }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="config.js?v=20261105-6"></script>
-<script src="sumber.js?v=20261105-6"></script>
-<script src="app.js?v=20261105-6"></script>
-<script src="rekap.js?v=20261105-6"></script>
-<script src="gambar.js?v=20261105-6"></script>
-<script src="tata.js?v=20261105-6"></script>
+<script src="config.js?v=20261105-7"></script>
+<script src="sumber.js?v=20261105-7"></script>
+<script src="app.js?v=20261105-7"></script>
+<script src="rekap.js?v=20261105-7"></script>
+<script src="gambar.js?v=20261105-7"></script>
+<script src="tata.js?v=20261105-7"></script>
 </body>
 </html>
