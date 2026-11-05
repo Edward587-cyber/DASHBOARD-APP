@@ -12,7 +12,7 @@
       window.APP.TAHUN.forEach((y) => {
         const b = el('button', null, String(y)); b.type = 'button';
         b.setAttribute('aria-pressed', String(y === th));
-        b.addEventListener('click', () => { if (y !== th) dash.setParams({ tahun: y, k: 'SEMUA' }); });
+        b.addEventListener('click', () => { if (y !== th) dash.setParams({ tahun: y, k: 'SEMUA', ty: null }); });
         yearsEl.append(b);
       });
     }
