@@ -353,6 +353,11 @@ body { background: var(--color-bg); }
 .pagu .sl-list { margin: 0 0 12px; }
 .pagu .hlbox { background: #fff3c4; padding: 6px 10px; border-radius: 8px; font-weight: 800; color: #0b2a5b; }
 #dash-root .rp-kseg button small { display: block; font-size: .72rem; font-weight: 500; opacity: .75; }
+#dash-root .rp-dds { display: flex; flex-wrap: wrap; gap: 10px; }
+#dash-root .rp-dd { display: inline-flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: .08em; }
+#dash-root .rp-dd select { font: inherit; text-transform: none; letter-spacing: 0; font-size: .9rem; font-weight: 600; color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 10px; padding: 8px 32px 8px 12px; min-width: 12rem; cursor: pointer; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+#dash-root .rp-dd select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#dash-root .rp-dd select option { background: #0f2530; color: var(--color-fg); }
 </style>
 </head>
 <body>
@@ -548,7 +553,7 @@ body { background: var(--color-bg); }
   <section class="rp-sec" id="umur" data-tab="umur">
     <h2>Cluster umur meter lama</h2>
     <div class="rp-toolbar">
-      <div class="rp-seg rp-kseg" role="group" aria-label="Pilih kontrak" data-draw="kontrak-seg" data-source="capaian"></div>
+      <label class="rp-dd"><span>Kontrak</span><select data-draw="kontrak-dd" data-source="capaian" aria-label="Pilih kontrak"></select></label>
     </div>
     <div class="rp-grid">
       <div class="rp-card">
@@ -594,7 +599,7 @@ body { background: var(--color-bg); }
   <section class="rp-sec" id="alasan" data-tab="alasan">
     <h2>Cluster alasan penggantian</h2>
     <div class="rp-toolbar">
-      <div class="rp-seg rp-kseg" role="group" aria-label="Pilih kontrak" data-draw="kontrak-seg" data-source="capaian"></div>
+      <label class="rp-dd"><span>Kontrak</span><select data-draw="kontrak-dd" data-source="capaian" aria-label="Pilih kontrak"></select></label>
       <div class="rp-seg" role="group" aria-label="Kategori alasan">
         <button type="button" data-ka="PENGGANTIAN KWH" aria-pressed="true">Semua penggantian</button>
         <button type="button" data-ka="PASKA 1 PHASA" aria-pressed="false">Paska 1P</button>
@@ -694,7 +699,10 @@ body { background: var(--color-bg); }
         <div class="rp-ch"><h3>Realisasi per bulan</h3><p class="rp-cap">Semua penggantian (meter tua dan rusak) per bulan tanggal penggantian; bila kosong, tanggal input. Pilih tahun agar bulan dari tahun berbeda tidak tercampur. Tanggal sebelum 2025 atau setelah bulan ini dianggap salah ketik.</p></div>
         <div class="rp-toolbar">
           <div class="rp-legend" data-draw="leg-bulan" data-source="rekap_bulan"></div>
-          <div class="rp-seg" role="group" aria-label="Tahun tren bulanan" data-draw="tahun-bulan" data-source="rekap_bulan"></div>
+          <div class="rp-dds">
+            <label class="rp-dd"><span>Kontrak</span><select data-draw="kontrak-dd" data-source="capaian" aria-label="Pilih kontrak"></select></label>
+            <label class="rp-dd"><span>Tahun</span><select data-draw="tahun-bulan" data-source="rekap_bulan" aria-label="Tahun tren bulanan"></select></label>
+          </div>
           <div class="rp-seg" role="group" aria-label="Pecah realisasi per bulan menurut">
             <button type="button" data-tb="kategori" aria-pressed="true">Per kategori</button>
             <button type="button" data-tb="alasan" aria-pressed="false">Meter tua vs rusak</button>
@@ -752,7 +760,7 @@ body { background: var(--color-bg); }
 <script src="sumber.js?v=20261105-19"></script>
 <script src="app.js?v=20261105-11"></script>
 <script src="rekap.js?v=20261105-24"></script>
-<script src="gambar.js?v=20261105-26"></script>
+<script src="gambar.js?v=20261105-27"></script>
 <script src="tata.js?v=20261105-23"></script>
 <script>window.DIL_VERSI = "202412-202609-1";</script>
 <script src="materi.js?v=20261105-20" defer></script>

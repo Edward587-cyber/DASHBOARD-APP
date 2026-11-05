@@ -75,19 +75,13 @@
     chip(g3, 'Rusak karena hewan', pct(x.lt5_hewan, x.lt5), nf.format(x.lt5_hewan) + ' meter', null, 'Alasan: rusak karena serangga/hewan');
     chip(g3, 'Lainnya', pct(x.lt5_lainnya, x.lt5), nf.format(x.lt5_lainnya) + ' meter', null, 'Mis. meter macet, display mati, relay rusak');
   });
-  // pilihan kontrak di dalam tab (sinkron dengan menu samping)
-  dash.draw('kontrak-seg', (el) => {
-    el.replaceChildren();
+  // dropdown kontrak di dalam tab (sinkron dengan menu samping)
+  dash.draw('kontrak-dd', (sel) => {
     const k = dash.params().k || 'SEMUA';
-    const daftar = [{ id: 'SEMUA', a: 'Semua kontrak', b: String(TH()) }, ...window.APP.kontrakTahun(TH()).map((c) => ({ id: c.id, a: 'Lot ' + c.lot, b: c.nama }))];
-    daftar.forEach((d) => {
-      const btn = document.createElement('button'); btn.type = 'button';
-      btn.append(document.createTextNode(d.a));
-      const s = document.createElement('small'); s.textContent = d.b; btn.append(s);
-      btn.setAttribute('aria-pressed', String(k === d.id));
-      btn.addEventListener('click', () => dash.setParams({ k: d.id }));
-      el.append(btn);
-    });
+    const daftar = [['SEMUA', 'Semua kontrak ' + TH()], ...window.APP.kontrakTahun(TH()).map((c) => [c.id, 'Lot ' + c.lot + ' · ' + c.nama])];
+    sel.replaceChildren(...daftar.map(([v, t]) => new Option(t, v)));
+    sel.value = daftar.some(([v]) => v === k) ? k : 'SEMUA';
+    sel.onchange = () => dash.setParams({ k: sel.value });
   });
   // KPI
   dash.draw('kpi-total', (el) => { const r = capRow(); el.dataset.where = 'kontraktor=' + esc(K()); el.textContent = r ? nf.format(r.realisasi_kwh) : '—'; });
@@ -287,20 +281,15 @@
   dash.onData(() => document.querySelectorAll('#dash-root [data-tb]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tb === TB()))));
   // filter tahun untuk tren bulanan: bawaan = tahun kontrak yang dipilih
   const TY = () => { const v = dash.params().ty; return v === 'SEMUA' ? 'SEMUA' : String(v || TH()); };
-  dash.draw('tahun-bulan', (el) => {
-    el.replaceChildren();
+  dash.draw('tahun-bulan', (sel) => {
     const S = SERI_BULAN();
-    if (!ok(S.src)) return;
     const now = bulanNow();
-    const yrs = Array.from(new Set(rowsOf(S.src).filter((r) => r.kontraktor === K() && r.bulan >= '2025-01' && r.bulan <= now).map((r) => r.bulan.slice(0, 4)))).sort();
+    const yrs = Array.from(new Set((ok(S.src) ? rowsOf(S.src) : []).filter((r) => r.kontraktor === K() && r.bulan >= '2025-01' && r.bulan <= now).map((r) => r.bulan.slice(0, 4))));
     if (!yrs.includes(String(TH()))) yrs.push(String(TH()));
-    [...yrs.sort(), 'SEMUA'].forEach((y) => {
-      const b = document.createElement('button'); b.type = 'button';
-      b.textContent = y === 'SEMUA' ? 'Semua tahun' : y;
-      b.setAttribute('aria-pressed', String(TY() === y));
-      b.addEventListener('click', () => dash.setParams({ ty: y }));
-      el.append(b);
-    });
+    sel.replaceChildren(...yrs.sort().map((y) => new Option(y, y)), new Option('Semua tahun', 'SEMUA'));
+    sel.value = TY();
+    if (sel.value !== TY()) sel.value = String(TH());
+    sel.onchange = () => dash.setParams({ ty: sel.value });
   });
   dash.draw('leg-bulan', (el) => { const S = SERI_BULAN(); if (!ok(S.src)) { el.replaceChildren(); return; } legend(el, S.keys.map((k, i) => [S.col[i], 1, S.lbl(k)])); });
   dash.draw('ch-bulan', (el) => {
