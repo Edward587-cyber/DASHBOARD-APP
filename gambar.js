@@ -250,23 +250,31 @@
   // tren bulanan
   const BKAT = ['PASKA 1 PHASA', 'PRABAYAR 1 PHASA', 'PRABAYAR 3 PHASA', 'PERIKSA', 'METER BOX'];
   const bulanNow = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
-  dash.draw('leg-bulan', (el) => { if (!ok('rekap_bulan')) { el.replaceChildren(); return; } legend(el, BKAT.map((k, i) => [dash.colors[i], 1, KLBL[k]])); });
+  const TB = () => dash.params().tb || 'kategori';
+  const SERI_BULAN = () => (TB() === 'alasan'
+    ? { src: 'rekap_bulan_alasan', field: 'kelompok', keys: ['Meter tua', 'Meter rusak / lainnya'], lbl: (k) => k, col: ['var(--u4)', 'var(--c2)'] }
+    : { src: 'rekap_bulan', field: 'kategori', keys: BKAT, lbl: (k) => KLBL[k], col: BKAT.map((_, i) => dash.colors[i]) });
+  document.querySelectorAll('#dash-root [data-tb]').forEach((b) => b.addEventListener('click', () => dash.setParams({ tb: b.dataset.tb })));
+  dash.onData(() => document.querySelectorAll('#dash-root [data-tb]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tb === TB()))));
+  dash.draw('leg-bulan', (el) => { const S = SERI_BULAN(); if (!ok(S.src)) { el.replaceChildren(); return; } legend(el, S.keys.map((k, i) => [S.col[i], 1, S.lbl(k)])); });
   dash.draw('ch-bulan', (el) => {
-    const st = dash.data('rekap_bulan').status;
+    const S = SERI_BULAN();
+    const st = dash.data(S.src).status;
     if (st === 'error') { failed(el); return; }
     if (st !== 'ok') { memuat(el); return; }
     el.replaceChildren();
     const now = bulanNow();
-    const rows = rowsOf('rekap_bulan').filter((r) => r.kontraktor === K() && r.bulan >= '2025-01' && r.bulan <= now);
+    const rows = rowsOf(S.src).filter((r) => r.kontraktor === K() && r.bulan >= '2025-01' && r.bulan <= now);
     const months = Array.from(new Set(rows.map((r) => r.bulan))).sort();
     if (!months.length) { const p = document.createElement('p'); p.className = 'rp-cap'; p.textContent = 'Belum ada tanggal yang terbaca.'; el.append(p); return; }
-    const data = months.map((m) => { const o = { bulan: m }; BKAT.forEach((k) => { o[k] = d3.sum(rows.filter((r) => r.bulan === m && r.kategori === k), (r) => r.jumlah); }); return o; });
-    const series = d3.stack().keys(BKAT)(data);
+    const KK = S.keys;
+    const data = months.map((m) => { const o = { bulan: m }; KK.forEach((k) => { o[k] = d3.sum(rows.filter((r) => r.bulan === m && r[S.field] === k), (r) => r.jumlah); }); return o; });
+    const series = d3.stack().keys(KK)(data);
     const W = el.clientWidth || 600, H = 260;
     const svgN = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     el.append(svgN); el.style.minHeight = H + 'px';
     const svg = d3.select(svgN).attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
-    const ymax = d3.max(data, (d) => d3.sum(BKAT, (k) => d[k])) || 1;
+    const ymax = d3.max(data, (d) => d3.sum(KK, (k) => d[k])) || 1;
     const y = d3.scaleLinear([0, ymax], [H - 24, 8]).nice();
     const tmp = svg.append('text').attr('font-size', 12).text(nf.format(y.domain()[1]));
     const left = tmp.node().getComputedTextLength() + 10; tmp.remove();
@@ -284,8 +292,8 @@
       svg.append('g').selectAll('rect').data(s).join('rect')
         .attr('x', (d) => x(d.data.bulan) + (x.bandwidth() - bw) / 2).attr('width', bw)
         .attr('y', (d) => y(d[1])).attr('height', (d) => Math.max(0, y(d[0]) - y(d[1]) - (d[1] > d[0] ? 1 : 0)))
-        .attr('fill', dash.colors[si])
-        .on('mousemove', (ev, d) => showTip(el, ev, fmtM(d.data.bulan) + ' · total ' + nf.format(d3.sum(BKAT, (k) => d.data[k])), BKAT.filter((k) => d.data[k]).map((k) => [dash.colors[BKAT.indexOf(k)], 1, KLBL[k], nf.format(d.data[k])])))
+        .attr('fill', S.col[si])
+        .on('mousemove', (ev, d) => { const tt = d3.sum(KK, (k) => d.data[k]); showTip(el, ev, fmtM(d.data.bulan) + ' · total ' + nf.format(tt), KK.filter((k) => d.data[k]).map((k) => [S.col[KK.indexOf(k)], 1, S.lbl(k), nf.format(d.data[k]) + ' (' + pf.format(tt ? d.data[k] / tt : 0) + ')'])); })
         .on('mouseleave', () => hideTip(el));
     });
   });

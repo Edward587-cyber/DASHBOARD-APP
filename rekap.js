@@ -119,6 +119,23 @@
     },
   });
 
+  dash.calc('rekap_bulan_alasan', {
+    title: 'Realisasi per bulan: meter tua vs rusak',
+    fn: (ctx) => {
+      const acc = {};
+      each(ctx, (c, r) => {
+        if (r.jenis !== 'Meter' || !GANTI.includes(r.kategori)) return;
+        const kel = r.kelompok_alasan === 'Meter tua' ? 'Meter tua' : 'Meter rusak / lainnya';
+        keys(c).forEach((k) => {
+          const key = k + '|' + r.bulan + '|' + kel;
+          acc[key] = acc[key] || { kontraktor: k, bulan: r.bulan, kelompok: kel, jumlah: 0 };
+          acc[key].jumlah += 1;
+        });
+      });
+      return Object.values(acc);
+    },
+  });
+
   dash.calc('rekap_merk', {
     title: 'Merk meter lama',
     fn: (ctx) => {
