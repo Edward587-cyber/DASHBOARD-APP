@@ -536,4 +536,5 @@
         tb.append(tr);
       });
   });
+  window.RP = { hstack, donut, showTip, hideTip, legend, memuat, failed, nf, pf, CL, clColor };
 })();
