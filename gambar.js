@@ -48,17 +48,32 @@
   // kalimat ringkasan
   dash.draw('t-chips', (el) => {
     el.replaceChildren();
-    if (!['capaian', 'rekap_usia', 'rekap_alasan'].every(ok)) return;
-    const chip = (lbl, val, cls) => { const s = document.createElement('span'); s.className = 'rp-chip' + (cls ? ' ' + cls : ''); s.append(document.createTextNode(lbl)); const b = document.createElement('b'); b.textContent = val; s.append(b); el.append(s); };
+    if (!['capaian', 'rekap_ringkas'].every(ok)) return;
+    const mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+    const chip = (box, lbl, val, sub, cls, title) => {
+      const s = mk('span', 'rp-chip' + (cls ? ' ' + cls : ''));
+      if (title) s.title = title;
+      s.append(document.createTextNode(lbl), mk('b', null, val));
+      if (sub) s.append(mk('small', null, sub));
+      box.append(s); return s;
+    };
+    const grup = (judul) => { const g = mk('div', 'rp-chipgrp'); const row = mk('div', 'rp-chiprow'); g.append(mk('span', 'rp-chipttl', judul), row); el.append(g); return row; };
+    const pct = (n, d) => (d ? pf.format(n / d) : '—');
     const r = capRow();
-    if (r && r.persen != null) chip('Capaian target', pf.format(r.persen), r.persen >= 1 ? 'ok' : r.persen >= 0.9 ? 'warn' : 'bad');
-    const u = rowsOf('rekap_usia').filter((x) => x.kontraktor === K() && x.kategori === 'PENGGANTIAN KWH');
-    const tot = d3.sum(u, (x) => x.jumlah);
-    const of = (c) => d3.sum(u.filter((x) => x.cluster_usia === c), (x) => x.jumlah);
-    if (tot) { chip('Meter ≥ 15 tahun', pf.format(of('≥ 15 tahun') / tot)); chip('Meter < 5 tahun', pf.format(of('< 5 tahun') / tot)); }
-    const al = rowsOf('rekap_alasan').filter((x) => x.kontraktor === K() && x.kategori === 'PENGGANTIAN KWH').sort((a, b) => b.jumlah - a.jumlah);
-    const ta = d3.sum(al, (x) => x.jumlah);
-    if (al[0] && ta) chip('Alasan terbanyak · ' + al[0].kelompok_alasan.toLowerCase(), pf.format(al[0].jumlah / ta));
+    const x = rowsOf('rekap_ringkas').find((v) => v.kontraktor === K());
+    const g1 = grup('Capaian');
+    if (r && r.persen != null) chip(g1, 'Target kontrak', pf.format(r.persen), nf.format(r.realisasi_kwh) + ' / ' + nf.format(r.target_kwh), r.persen >= 1 ? 'ok' : r.persen >= 0.9 ? 'warn' : 'bad');
+    if (!x) return;
+    const g2 = grup('Meter tua');
+    chip(g2, 'Paskabayar ≥ 15 th', pct(x.paska_ge15, x.paska), nf.format(x.paska_ge15) + ' dari ' + nf.format(x.paska) + ' paska', null, 'Porsi meter paskabayar yang diganti dan berumur 15 tahun atau lebih');
+    chip(g2, 'Prabayar ≥ 10 th', pct(x.prabayar_ge10, x.prabayar), nf.format(x.prabayar_ge10) + ' dari ' + nf.format(x.prabayar) + ' prabayar', null, 'Porsi meter prabayar (1 & 3 phasa) yang diganti dan berumur 10 tahun atau lebih');
+    chip(g2, 'Total meter tua', pct(x.meter_tua, x.total), nf.format(x.meter_tua) + ' dari ' + nf.format(x.total), 'accent');
+    const g3 = grup('Meter < 5 tahun');
+    chip(g3, 'Dari semua penggantian', pct(x.lt5, x.total), nf.format(x.lt5) + ' meter', 'warn');
+    chip(g3, 'Terbakar', pct(x.lt5_terbakar, x.lt5), nf.format(x.lt5_terbakar) + ' meter', null, 'Alasan: terbakar, tersambar petir, terminal terbakar');
+    chip(g3, 'Gagal input token', pct(x.lt5_token, x.lt5), nf.format(x.lt5_token) + ' meter', null, 'Alasan: token/KCT tidak bisa masuk, keypad tidak berfungsi, kredit kWh minus');
+    chip(g3, 'Rusak karena hewan', pct(x.lt5_hewan, x.lt5), nf.format(x.lt5_hewan) + ' meter', null, 'Alasan: rusak karena serangga/hewan');
+    chip(g3, 'Lainnya', pct(x.lt5_lainnya, x.lt5), nf.format(x.lt5_lainnya) + ' meter', null, 'Mis. meter macet, display mati, relay rusak');
   });
   // KPI
   dash.draw('kpi-total', (el) => { const r = capRow(); el.dataset.where = 'kontraktor=' + esc(K()); el.textContent = r ? nf.format(r.realisasi_kwh) : '—'; });
