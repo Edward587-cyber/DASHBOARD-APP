@@ -75,6 +75,20 @@
     chip(g3, 'Rusak karena hewan', pct(x.lt5_hewan, x.lt5), nf.format(x.lt5_hewan) + ' meter', null, 'Alasan: rusak karena serangga/hewan');
     chip(g3, 'Lainnya', pct(x.lt5_lainnya, x.lt5), nf.format(x.lt5_lainnya) + ' meter', null, 'Mis. meter macet, display mati, relay rusak');
   });
+  // pilihan kontrak di dalam tab (sinkron dengan menu samping)
+  dash.draw('kontrak-seg', (el) => {
+    el.replaceChildren();
+    const k = dash.params().k || 'SEMUA';
+    const daftar = [{ id: 'SEMUA', a: 'Semua kontrak', b: String(TH()) }, ...window.APP.kontrakTahun(TH()).map((c) => ({ id: c.id, a: 'Lot ' + c.lot, b: c.nama }))];
+    daftar.forEach((d) => {
+      const btn = document.createElement('button'); btn.type = 'button';
+      btn.append(document.createTextNode(d.a));
+      const s = document.createElement('small'); s.textContent = d.b; btn.append(s);
+      btn.setAttribute('aria-pressed', String(k === d.id));
+      btn.addEventListener('click', () => dash.setParams({ k: d.id }));
+      el.append(btn);
+    });
+  });
   // KPI
   dash.draw('kpi-total', (el) => { const r = capRow(); el.dataset.where = 'kontraktor=' + esc(K()); el.textContent = r ? nf.format(r.realisasi_kwh) : '—'; });
   dash.draw('kpi-bar', (el) => {

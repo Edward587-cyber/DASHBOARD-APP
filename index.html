@@ -352,6 +352,7 @@ body { background: var(--color-bg); }
 .pagu p { margin: 0 0 8px; }
 .pagu .sl-list { margin: 0 0 12px; }
 .pagu .hlbox { background: #fff3c4; padding: 6px 10px; border-radius: 8px; font-weight: 800; color: #0b2a5b; }
+#dash-root .rp-kseg button small { display: block; font-size: .72rem; font-weight: 500; opacity: .75; }
 </style>
 </head>
 <body>
@@ -546,6 +547,9 @@ body { background: var(--color-bg); }
 
   <section class="rp-sec" id="umur" data-tab="umur">
     <h2>Cluster umur meter lama</h2>
+    <div class="rp-toolbar">
+      <div class="rp-seg rp-kseg" role="group" aria-label="Pilih kontrak" data-draw="kontrak-seg" data-source="capaian"></div>
+    </div>
     <div class="rp-grid">
       <div class="rp-card">
         <div class="rp-ch"><h3>Komposisi umur seluruh penggantian kWh</h3><p class="rp-cap">Umur = tahun penggantian − tahun pembuatan meter lama.</p></div>
@@ -590,6 +594,7 @@ body { background: var(--color-bg); }
   <section class="rp-sec" id="alasan" data-tab="alasan">
     <h2>Cluster alasan penggantian</h2>
     <div class="rp-toolbar">
+      <div class="rp-seg rp-kseg" role="group" aria-label="Pilih kontrak" data-draw="kontrak-seg" data-source="capaian"></div>
       <div class="rp-seg" role="group" aria-label="Kategori alasan">
         <button type="button" data-ka="PENGGANTIAN KWH" aria-pressed="true">Semua penggantian</button>
         <button type="button" data-ka="PASKA 1 PHASA" aria-pressed="false">Paska 1P</button>
@@ -747,7 +752,7 @@ body { background: var(--color-bg); }
 <script src="sumber.js?v=20261105-19"></script>
 <script src="app.js?v=20261105-11"></script>
 <script src="rekap.js?v=20261105-24"></script>
-<script src="gambar.js?v=20261105-25"></script>
+<script src="gambar.js?v=20261105-26"></script>
 <script src="tata.js?v=20261105-23"></script>
 <script>window.DIL_VERSI = "202412-202609-1";</script>
 <script src="materi.js?v=20261105-20" defer></script>
