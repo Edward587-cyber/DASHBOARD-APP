@@ -205,6 +205,7 @@ body { background: var(--color-bg); }
 .rp-years button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .rp-side-h span { color: var(--accent); }
 @media (max-width: 900px) { .rp-years { flex-wrap: nowrap; overflow-x: auto; } .rp-years button { flex: none; } }
+#dash-root .rp-table td.heat { color: var(--color-fg); }
 </style>
 </head>
 <body>
@@ -219,7 +220,7 @@ body { background: var(--color-bg); }
     <a href="#kontrak" data-nav="kontrak"><span aria-hidden="true">☰</span>Capaian per kontrak</a>
     <a href="#umur" data-nav="umur"><span aria-hidden="true">⏳</span>Cluster umur</a>
     <a href="#alasan" data-nav="alasan"><span aria-hidden="true">≋</span>Cluster alasan</a>
-    <a href="#tren" data-nav="tren"><span aria-hidden="true">↗</span>Tren &amp; merk</a>
+    <a href="#tren" data-nav="tren"><span aria-hidden="true">↗</span>Tren bulanan</a>
     <a href="#catatan" data-nav="catatan"><span aria-hidden="true">Σ</span>Catatan</a>
   </nav>
   <p class="rp-side-h">Tahun kontrak</p>
@@ -325,6 +326,32 @@ body { background: var(--color-bg); }
         <div class="rp-legend" data-draw="leg-usia" data-source="rekap_usia"></div>
         <div class="rp-chart" data-draw="ch-usia" data-source="rekap_usia"></div>
       </div>
+      <div class="rp-card wide" id="umur-merk">
+        <div class="rp-ch"><h3>Umur meter per merk kWh meter</h3><p class="rp-cap">Meter lama yang diganti (Paska 1P, Prabayar 1P, Prabayar 3P), dipecah per cluster umur.</p></div>
+        <div class="rp-toolbar">
+          <div class="rp-legend" data-draw="leg-merk" data-source="rekap_merk"></div>
+          <div class="rp-seg" role="group" aria-label="Urutkan merk">
+            <button type="button" data-mu="jumlah" aria-pressed="true">Urut jumlah</button>
+            <button type="button" data-mu="tua" aria-pressed="false">Urut % ≥ 15 tahun</button>
+          </div>
+        </div>
+        <div class="rp-chart" data-draw="ch-merk" data-source="rekap_merk"></div>
+        <div class="rp-tablebox">
+          <table class="rp-table" data-source="rekap_merk" data-row-key="kontraktor,merk">
+            <thead><tr>
+              <th class="l" data-field="merk">Merk</th>
+              <th data-field="jumlah">Jumlah</th>
+              <th data-field="usia_lt10">&lt; 10 tahun</th>
+              <th data-field="usia_10_15">10 – &lt; 15 tahun</th>
+              <th data-field="usia_ge15">≥ 15 tahun</th>
+              <th data-field="usia_na">Tidak tercatat</th>
+              <th data-field="rata_usia">Rata-rata umur (th)</th>
+              <th data-field="tahun_tertua">Tahun tertua</th>
+            </tr></thead>
+            <tbody data-draw="tbl-merk"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -370,16 +397,12 @@ body { background: var(--color-bg); }
   </section>
 
   <section class="rp-sec" id="tren">
-    <h2>Tren dan merk</h2>
+    <h2>Tren bulanan</h2>
     <div class="rp-grid">
       <div class="rp-card wide">
         <div class="rp-ch"><h3>Realisasi per bulan</h3><p class="rp-cap">Bulan dari tanggal penggantian/periksa (bila kosong, tanggal input). Bulan sebelum 2025 atau setelah bulan ini dianggap salah ketik dan tidak digambar.</p></div>
         <div class="rp-legend" data-draw="leg-bulan" data-source="rekap_bulan"></div>
         <div class="rp-chart" data-draw="ch-bulan" data-source="rekap_bulan"></div>
-      </div>
-      <div class="rp-card wide">
-        <div class="rp-ch"><h3>Merk meter lama yang diganti</h3><p class="rp-cap">Dua belas merk terbanyak; label kanan menunjukkan jumlah dan rata-rata umur.</p></div>
-        <div class="rp-chart" data-draw="ch-merk" data-source="rekap_merk"></div>
       </div>
     </div>
   </section>
@@ -401,11 +424,11 @@ body { background: var(--color-bg); }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="config.js?v=20261105-4"></script>
-<script src="sumber.js?v=20261105-4"></script>
-<script src="app.js?v=20261105-4"></script>
-<script src="rekap.js?v=20261105-4"></script>
-<script src="gambar.js?v=20261105-4"></script>
-<script src="tata.js?v=20261105-4"></script>
+<script src="config.js?v=20261105-5"></script>
+<script src="sumber.js?v=20261105-5"></script>
+<script src="app.js?v=20261105-5"></script>
+<script src="rekap.js?v=20261105-5"></script>
+<script src="gambar.js?v=20261105-5"></script>
+<script src="tata.js?v=20261105-5"></script>
 </body>
 </html>
