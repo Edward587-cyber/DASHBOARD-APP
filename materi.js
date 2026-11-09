@@ -26,13 +26,19 @@
       bulan: BL.map(() => ({ tTua: '', rTua: '', tRusak: '', rRusak: '' })),
       upaya: 'Evaluasi internal dengan koordinator mitra kerja.\nVerifikasi data meter tua dengan melakukan validasi DIL vs ACMT.\nMemastikan surat edaran dan sosialisasi pelanggan tidak lewat dari tanggal.\nPemberian TO ganti meter dilengkapi dengan titik koordinat.\nMeminta mitra kerja untuk menambah jumlah tenaga kerja.',
     },
-    fso: { totalWo: 1311, viaFso: 1299, nonFso: 0, wwo: 12, kendalaJudul: 'Aplikasi FSO bermasalah', kendala: 'Petugas mengalami kendala akses/koneksi pada aplikasi FSO sehingga perlu refreshment ulang penggunaan FSO.\nMenu FSO pada AP2T terkadang bermasalah.' },
+    fso: { totalWo: 1311, viaFso: 1299, nonFso: 0, wwo: 12, target: 100, bulan: BL.map((_, i) => (i === 9 ? { total: 1311, via: 1299 } : { total: '', via: '' })), kendalaJudul: 'Aplikasi FSO bermasalah', kendala: 'Petugas mengalami kendala akses/koneksi pada aplikasi FSO sehingga perlu refreshment ulang penggunaan FSO.\nMenu FSO pada AP2T terkadang bermasalah.' },
     dok: { judul: 'Refreshment dan Knowledge Sharing', sub: 'dengan Petugas APP-Yantek', ket: 'Berbagi ilmu memperkuat tim, menjaga layanan yang lebih baik' },
     kontrak: { skki: 'I/2026.M/0001-B2/0/U.CRS', tanggal: '13 April 2026', t1f: 10667, t3pra: 104, t3pas: 273, nilaiJasa: 1005520610, realisasiRp: '' },
   });
   let M;
   try { M = Object.assign(bawaan(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { M = bawaan(); }
   const FOTO = {}; // foto hanya disimpan di memori halaman (tidak diunggah ke mana pun)
+  if (!Array.isArray(M.fso.bulan) || M.fso.bulan.length !== 12) M.fso.bulan = BL.map(() => ({ total: '', via: '' }));
+  if (M.fso.target == null) M.fso.target = 100;
+  const bulanIdx = () => BULAN.findIndex((b) => String(M.periode || '').toLowerCase().startsWith(b.toLowerCase()));
+  // bulan periode laporan selalu mengikuti isian Total WO & Via FSO di atas
+  const sinkronFso = () => { const i = bulanIdx(); if (i >= 0) M.fso.bulan[i] = { total: M.fso.totalWo, via: M.fso.viaFso }; };
+  sinkronFso();
   const simpan = () => { try { localStorage.setItem(KEY, JSON.stringify(M)); } catch (e) { /* abaikan */ } };
   const num = (v) => (v === '' || v == null || isNaN(Number(v)) ? null : Number(v));
 
@@ -122,6 +128,32 @@
     }
     return n;
   }
+  // garis persentase penggunaan FSO Januari–Desember
+  function trenFso(w, hh) {
+    const F = M.fso, bi = bulanIdx();
+    const pts = F.bulan.map((b, i) => { const t = num(b.total), v = num(b.via); return { i, p: t ? v / t : null, aktif: i === bi }; });
+    const ada = pts.filter((d) => d.p != null);
+    const tg = num(F.target) != null && F.target !== '' ? Number(F.target) / 100 : null;
+    const n = svgEl(w, hh); const s = d3.select(n);
+    const L = 40, R = 10, T = 22, B = 22;
+    const lo = Math.min(tg ?? 1, d3.min(ada, (d) => d.p) ?? 1);
+    const y0 = Math.max(0, Math.floor((lo - 0.02) * 20) / 20);
+    const y = d3.scaleLinear([y0, 1], [hh - B, T]);
+    const x = d3.scalePoint(d3.range(12), [L + 10, w - R - 10]);
+    y.ticks(4).forEach((t) => { s.append('line').attr('x1', L).attr('x2', w - R).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', C.line); s.append('text').attr('x', L - 5).attr('y', y(t)).attr('dy', '0.35em').attr('text-anchor', 'end').attr('font-size', 10).attr('fill', C.muted).text(Math.round(t * 100) + '%'); });
+    BL.forEach((b, i) => s.append('text').attr('x', x(i)).attr('y', hh - 6).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', i === bi ? 800 : 400).attr('fill', i === bi ? C.navy : C.muted).text(b));
+    if (tg != null) { s.append('line').attr('x1', L).attr('x2', w - R).attr('y1', y(tg)).attr('y2', y(tg)).attr('stroke', C.green2).attr('stroke-width', 1.5).attr('stroke-dasharray', '5 4'); s.append('text').attr('x', w - R).attr('y', y(tg) - 4).attr('text-anchor', 'end').attr('font-size', 9).attr('font-weight', 700).attr('fill', C.green2).text('Target ' + pf(tg, 0)); }
+    const area = d3.area().x((d) => x(d.i)).y0(y(y0)).y1((d) => y(d.p));
+    const line = d3.line().defined((d) => d.p != null).x((d) => x(d.i)).y((d) => y(d.p));
+    if (ada.length > 1) s.append('path').attr('d', area(ada)).attr('fill', C.sky).attr('opacity', 0.15);
+    s.append('path').attr('d', line(ada)).attr('fill', 'none').attr('stroke', C.blue2).attr('stroke-width', 2.5);
+    ada.forEach((d) => {
+      s.append('circle').attr('cx', x(d.i)).attr('cy', y(d.p)).attr('r', d.aktif ? 5 : 3.5).attr('fill', d.aktif ? C.navy : '#fff').attr('stroke', d.aktif ? C.navy : C.blue2).attr('stroke-width', 2);
+      s.append('text').attr('x', x(d.i)).attr('y', y(d.p) - 8).attr('text-anchor', 'middle').attr('font-size', d.aktif ? 10 : 8.5).attr('font-weight', 700).attr('fill', d.aktif ? C.navy : C.blue).text(pf(d.p, 1).replace('%', ''));
+    });
+    if (!ada.length) s.append('text').attr('x', w / 2).attr('y', hh / 2).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', C.muted).text('Isi data bulanan di form untuk menampilkan tren');
+    return n;
+  }
   function donut(items, w, center, sub) {
     const n = svgEl(w, w); const s = d3.select(n).append('g').attr('transform', `translate(${w / 2},${w / 2})`);
     const tot = d3.sum(items, (d) => d.v);
@@ -192,7 +224,7 @@
       panel('KENDALA YANG DIHADAPI', h('div', {}, h('b', { class: 'sl-sub' }, '1  ' + F.kendalaJudul.toUpperCase()), daftar(F.kendala)), 'k'),
       panel('KOMPOSISI PELAKSANAAN WO', h('div', { class: 'fso-komp' }, donut([{ v: via, c: C.blue2 }, { v: non, c: C.orange }, { v: w, c: C.yellow }], 150, nf.format(tot), 'WO'),
         h('ul', { class: 'sl-leg' }, [['Ganti Meter Via FSO', via, C.blue2], ['Ganti Meter Non FSO', non, C.orange], ['WWO Belum Ditindaklanjuti', w, C.yellow]].map(([l, v, c]) => h('li', {}, h('i', { style: 'background:' + c }), l, h('b', {}, nf.format(v) + ' (' + pf(tot ? v / tot : 0) + ')'))))), 'p'),
-      panel('TREN PENGGUNAAN FSO', h('div', { class: 'fso-bar' }, h('div', { class: 'bar' }, h('i', { style: 'width:' + Math.min(100, (p || 0) * 100) + '%' })), h('b', {}, pf(p)), h('p', {}, '“Konsistensi penggunaan FSO mendukung tata kelola data yang lebih baik”')), 'q'),
+      panel('TREN PENGGUNAAN FSO ' + String(M.periode).split(' ').pop(), h('div', { class: 'fso-tren' }, trenFso(372, 214), h('p', {}, '% penggunaan FSO = ganti meter via FSO ÷ total WO')), 'q'),
     ), { sub: 'GANTI METER – UP3 CIRACAS · ' + M.periode.toUpperCase() });
   }
 
@@ -259,6 +291,19 @@
     if (id === 'fso') {
       const F = M.fso;
       box.append(h('div', { class: 'mrow' }, fld('Total WO', inp(F.totalWo, (v) => { F.totalWo = num(v) || 0; })), fld('Ganti meter via FSO', inp(F.viaFso, (v) => { F.viaFso = num(v) || 0; })), fld('Ganti meter non FSO', inp(F.nonFso, (v) => { F.nonFso = num(v) || 0; })), fld('WWO belum ditindaklanjuti', inp(F.wwo, (v) => { F.wwo = num(v) || 0; }))));
+      const bi = bulanIdx();
+      box.append(h('h5', {}, 'Tren bulanan (isi setiap bulan)'), h('p', { class: 'mnote' }, 'Baris bulan periode laporan' + (bi >= 0 ? ' (' + BULAN[bi] + ')' : '') + ' otomatis mengikuti Total WO dan Via FSO di atas. Persentase dihitung otomatis.'));
+      const pctCell = (i) => { const t = num(F.bulan[i].total), v = num(F.bulan[i].via); return t ? pf(v / t) : '—'; };
+      const pcts = [];
+      box.append(h('table', { class: 'mg' }, h('thead', {}, h('tr', {}, ['Bulan', 'Total WO', 'Via FSO', '% FSO'].map((c) => h('th', {}, c)))),
+        h('tbody', {}, BULAN.map((b, i) => {
+          const pc = h('td', { class: 'mpct' }, pctCell(i)); pcts[i] = pc;
+          const cell = (k) => h('td', {}, inp(F.bulan[i][k], (v) => { F.bulan[i][k] = v === '' ? '' : num(v) ?? ''; pc.textContent = pctCell(i); }, i === bi ? { inputmode: 'numeric', disabled: '', 'data-fso-bi': k } : { inputmode: 'numeric' }));
+          return h('tr', {}, h('th', {}, b), cell('total'), cell('via'), pc);
+        }))));
+      box.append(fld('Target % penggunaan FSO (kosongkan bila tidak ada)', inp(F.target, (v) => { F.target = v === '' ? '' : num(v) ?? ''; }, { inputmode: 'decimal' })));
+      const segar = () => { sinkronFso(); if (bi < 0) return; box.querySelectorAll('[data-fso-bi]').forEach((e) => { e.value = F.bulan[bi][e.dataset.fsoBi]; }); pcts[bi].textContent = pctCell(bi); simpan(); };
+      box.querySelectorAll('.mrow input').forEach((e) => e.addEventListener('input', segar));
       box.append(fld('Judul kendala', inp(F.kendalaJudul, (v) => { F.kendalaJudul = v; })), fld('Uraian kendala (satu baris satu poin)', area(F.kendala, (v) => { F.kendala = v; })));
     }
     if (id === 'dok') {
@@ -334,7 +379,7 @@
       const cb = h('input', { type: 'checkbox', id: 'mt-ikut-' + s.id, title: 'Ikut diekspor' }); cb.checked = true;
       return h('div', { class: 'mt-item' }, b, cb);
     }));
-    const per = $('#mt-periode'); if (per) { per.value = M.periode; per.addEventListener('input', () => { M.periode = per.value; simpan(); jadwal(); }); }
+    const per = $('#mt-periode'); if (per) { per.value = M.periode; per.addEventListener('input', () => { M.periode = per.value; sinkronFso(); simpan(); jadwal(); if (pilih === 'fso') bukaForm(); }); }
     $('#mt-png')?.addEventListener('click', () => eksporPng().catch((e) => info('Gagal: ' + e.message)));
     $('#mt-pptx')?.addEventListener('click', () => eksporPptx().catch((e) => info('Gagal: ' + e.message)));
     $('#mt-reset')?.addEventListener('click', () => { const p = M.periode; M = bawaan(); M.periode = p; simpan(); bukaForm(); gambarSemua(); info('Isian dikembalikan ke contoh bawaan.'); });
