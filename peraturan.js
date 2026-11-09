@@ -1,10 +1,9 @@
 // Tab "Peraturan TEL": daftar dokumen dari folder Google Drive "KUMPULAN PERATURAN".
-// Daftar dibaca langsung dari Drive (bila Drive API aktif untuk API key dan folder dibagikan
-// "Siapa saja yang memiliki link"); bila tidak, memakai salinan daftar data/peraturan.json.
+// Daftar (judul + ID file Drive) disimpan terenkripsi di data/peraturan.enc (AES-256-GCM,
+// kunci dari kata sandi lewat PBKDF2) dan baru terbaca setelah kata sandi dimasukkan.
 // Klik dokumen = dibuka di penampil di dalam dashboard (pratinjau Google Drive).
 (() => {
-  const ROOT = (window.DASH_CONFIG && window.DASH_CONFIG.peraturanFolder) || '1g8m0IIySPPwREdicYg93ldRARTmIGIsw';
-  const FOLDER = 'application/vnd.google-apps.folder';
+  const SKEY = 'pt-sandi';
   const $ = (s, r = document) => r.querySelector(s);
   const h = (tag, attrs = {}, ...kids) => {
     const e = document.createElement(tag);
@@ -30,37 +29,33 @@
   const hitung = (ns) => ns.reduce((s, n) => s + ('c' in n ? hitung(n.c) : 1), 0);
   const ratakan = (ns, jalur = []) => ns.flatMap((n) => ('c' in n ? ratakan(n.c, [...jalur, n.n]) : [{ ...n, jalur }]));
 
-  const S = { pohon: null, sumber: '', tanggal: '', kat: 'semua', jenis: 'semua', cari: '', memuat: false };
+  const S = { pohon: null, sumber: '', tanggal: '', kat: 'semua', jenis: 'semua', cari: '', memuat: false, galat: '' };
 
-  // ---------- sumber data ----------
-  async function bacaLangsung() {
-    const key = window.DASH_CONFIG && window.DASH_CONFIG.apiKey;
-    if (!key) throw new Error('tanpa API key');
-    const isi = async (id) => {
-      let out = [], token = '';
-      do {
-        const u = 'https://www.googleapis.com/drive/v3/files?pageSize=1000&q=' + encodeURIComponent("'" + id + "' in parents and trashed=false") +
-          '&fields=' + encodeURIComponent('nextPageToken,files(id,name,mimeType,size,modifiedTime,fileExtension)') + '&key=' + key + (token ? '&pageToken=' + token : '');
-        const r = await fetch(u); if (!r.ok) throw new Error('Drive ' + r.status);
-        const j = await r.json(); out = out.concat(j.files || []); token = j.nextPageToken || '';
-      } while (token);
-      return Promise.all(out.map(async (f) => (f.mimeType === FOLDER ? { id: f.id, n: f.name, c: await isi(f.id) }
-        : { id: f.id, n: f.name, t: (f.fileExtension || f.mimeType.split('/').pop()).toLowerCase(), s: Number(f.size || 0), m: (f.modifiedTime || '').slice(0, 10) })));
-    };
-    const pohon = await isi(ROOT);
-    if (!hitung(pohon)) throw new Error('folder kosong / belum dibagikan');
-    return pohon;
+  // ---------- sumber data (terenkripsi) ----------
+  async function buka(sandi) {
+    const buf = new Uint8Array(await fetch('data/peraturan.enc?v=' + (window.PERATURAN_VERSI || '1'), { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error('File daftar tidak ditemukan'); return r.arrayBuffer(); }));
+    if (String.fromCharCode(...buf.slice(0, 4)) !== 'DIL1') throw new Error('Format file tidak dikenal');
+    const salt = buf.slice(4, 20), iv = buf.slice(20, 32), data = buf.slice(32);
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(sandi), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    let plain;
+    try { plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data); } catch (e) { throw new Error('Kata sandi salah'); }
+    return JSON.parse(await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
   }
-  async function muat() {
-    if (S.memuat || S.pohon) return;
-    S.memuat = true; gambar();
-    try { S.pohon = rapikan(await bacaLangsung()); S.sumber = 'langsung'; S.tanggal = new Date().toISOString().slice(0, 10); }
-    catch (e) {
-      try { const j = await fetch('data/peraturan.json?v=' + (window.PERATURAN_VERSI || '1')).then((r) => r.json()); S.pohon = rapikan(j.isi); S.sumber = 'salinan'; S.tanggal = j.dibuat; }
-      catch (e2) { S.pohon = []; S.sumber = 'gagal'; }
+  async function muat(sandi) {
+    if (S.memuat) return;
+    S.memuat = true; S.galat = ''; gambar();
+    try {
+      const j = await buka(sandi);
+      S.pohon = rapikan(j.isi); S.tanggal = j.dibuat; S.sumber = 'salinan';
+      try { sessionStorage.setItem(SKEY, sandi); } catch (e) { /* abaikan */ }
+    } catch (e) {
+      S.galat = e.message;
+      try { sessionStorage.removeItem(SKEY); } catch (e2) { /* abaikan */ }
     }
     S.memuat = false; gambar();
   }
+  const kunci = () => { S.pohon = null; S.galat = ''; S.cari = ''; S.kat = 'semua'; S.jenis = 'semua'; const c = $('#pt-cari'); if (c) c.value = ''; try { sessionStorage.removeItem(SKEY); } catch (e) { /* abaikan */ } const j = $('#pt-jenis'); if (j) j.replaceChildren(); gambar(); };
 
   // ---------- penampil ----------
   const urlPratinjau = (f) => 'https://drive.google.com/file/d/' + f.id + '/preview';
@@ -106,8 +101,25 @@
   function gambar() {
     const box = $('#pt-isi'); if (!box) return;
     const info = $('#pt-sumber');
-    if (S.memuat || !S.pohon) { box.replaceChildren(h('p', { class: 'rp-cap' }, 'Memuat daftar dokumen…')); return; }
-    if (info) info.textContent = S.sumber === 'langsung' ? 'Tersinkron langsung dengan Google Drive' : S.sumber === 'salinan' ? 'Daftar per ' + tgl(S.tanggal) : 'Daftar dokumen gagal dimuat';
+    const terkunci = !S.pohon;
+    $('#pt-alat')?.toggleAttribute('hidden', terkunci);
+    $('#pt-kunci-btn')?.toggleAttribute('hidden', terkunci);
+    if (terkunci) {
+      $('#pt-jumlah').textContent = 'Terkunci';
+      if (info) info.textContent = S.memuat ? 'Membuka…' : 'Masukkan kata sandi untuk melihat daftar dokumen';
+      const inp = h('input', { type: 'password', id: 'pt-sandi', placeholder: 'Kata sandi', autocomplete: 'current-password', 'aria-label': 'Kata sandi Peraturan TEL' });
+      const kirim = () => { if (inp.value) muat(inp.value); else inp.focus(); };
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') kirim(); });
+      box.replaceChildren(h('div', { class: 'rp-card pt-lock' },
+        h('div', { class: 'pt-lock-ic', 'aria-hidden': 'true' }, '🔒'),
+        h('h3', {}, 'Dokumen dilindungi kata sandi'),
+        h('p', { class: 'rp-cap' }, 'Daftar peraturan & SOP hanya untuk internal. Minta kata sandi kepada SPV Dal APP.'),
+        h('div', { class: 'pt-lock-row' }, inp, h('button', { type: 'button', class: 'rp-btn primary', onclick: kirim, disabled: S.memuat }, S.memuat ? 'Membuka…' : 'Buka')),
+        S.galat ? h('p', { class: 'pt-err', role: 'alert' }, S.galat) : null));
+      if (!S.memuat) setTimeout(() => inp.focus({ preventScroll: true }), 0);
+      return;
+    }
+    if (info) info.textContent = 'Daftar per ' + tgl(S.tanggal);
     // kategori (folder tingkat pertama)
     const kat = $('#pt-kat');
     if (kat) {
@@ -124,7 +136,7 @@
     const tampil = saring(akar);
     const n = hitung(tampil);
     $('#pt-jumlah').textContent = n + ' dokumen';
-    if (!n) { box.replaceChildren(h('p', { class: 'pt-empty' }, S.sumber === 'gagal' ? 'Daftar dokumen belum dapat dimuat.' : 'Tidak ada dokumen yang cocok dengan pencarian.')); return; }
+    if (!n) { box.replaceChildren(h('p', { class: 'pt-empty' }, 'Tidak ada dokumen yang cocok dengan pencarian.')); return; }
     if (S.cari) {
       box.replaceChildren(h('div', { class: 'rp-card' }, h('ul', { class: 'pt-list flat' }, ratakan(tampil).map((f) => barisFile(f, f.jalur)))));
       return;
@@ -147,7 +159,11 @@
     const dlg = $('#pt-viewer');
     dlg?.addEventListener('close', () => { $('#pt-v-isi', dlg).replaceChildren(); document.body.classList.remove('pt-modal'); });
     dlg?.addEventListener('click', (e) => { if (e.target === dlg) tutupPenampil(); });
-    if (location.hash === '#peraturan') muat();
+    $('#pt-kunci-btn')?.addEventListener('click', kunci);
+    gambar();
   });
-  window.PERATURAN_GAMBAR = () => { if (!S.pohon) muat(); else gambar(); };
+  window.PERATURAN_GAMBAR = () => {
+    let sandi = null; try { sandi = sessionStorage.getItem(SKEY); } catch (e) { /* abaikan */ }
+    if (!S.pohon && sandi && !S.galat) muat(sandi); else gambar();
+  };
 })();
