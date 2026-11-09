@@ -364,6 +364,52 @@ body { background: var(--color-bg); }
 #dash-root .rp-dd select { font: inherit; text-transform: none; letter-spacing: 0; font-size: .9rem; font-weight: 600; color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 10px; padding: 8px 32px 8px 12px; min-width: 12rem; cursor: pointer; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
 #dash-root .rp-dd select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #dash-root .rp-dd select option { background: #0f2530; color: var(--color-fg); }
+/* ---------- Peraturan TEL ---------- */
+#dash-root .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+#dash-root .pt-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+#dash-root .pt-search { flex: 1 1 320px; min-width: 0; }
+#dash-root .pt-search input { width: 100%; box-sizing: border-box; font: inherit; font-size: .95rem; color: var(--color-fg); background: #0b1d26; border: 1px solid var(--color-border-line); border-radius: 10px; padding: 10px 14px; }
+#dash-root .pt-search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#dash-root .pt-kat button { display: inline-flex; align-items: center; gap: 8px; }
+#dash-root .pt-badge { font-size: .75rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+#dash-root .pt-kat button[aria-pressed="true"] .pt-badge { background: rgba(0,0,0,.18); color: inherit; }
+#dash-root .pt-isi { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 16px; align-items: start; }
+#dash-root .pt-card { padding: 18px 20px; }
+#dash-root .pt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+#dash-root .pt-list .pt-list { margin: 4px 0 6px 14px; padding-left: 12px; border-left: 1px dashed var(--color-border-line); }
+#dash-root .pt-folder > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 8px; border-radius: 8px; font-weight: 700; }
+#dash-root .pt-folder > summary::-webkit-details-marker { display: none; }
+#dash-root .pt-folder > summary:hover { background: rgba(255,255,255,.04); }
+#dash-root .pt-folder > summary:focus-visible { outline: 2px solid var(--accent); }
+#dash-root .pt-fd { width: 18px; height: 14px; border-radius: 2px 4px 4px 4px; background: #f4b740; position: relative; flex: none; }
+#dash-root .pt-fd::before { content: ""; position: absolute; left: 0; top: -3px; width: 8px; height: 4px; border-radius: 2px 2px 0 0; background: #f4b740; }
+#dash-root .pt-folder[open] > summary .pt-fd { background: #f7c96a; }
+#dash-root .pt-folder > summary .pt-nm { flex: 1; }
+#dash-root .pt-n { font-size: .78rem; font-weight: 600; color: var(--color-fg-muted); white-space: nowrap; }
+#dash-root .pt-file { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; font: inherit; color: var(--color-fg); background: transparent; border: 0; border-radius: 8px; padding: 7px 8px; cursor: pointer; }
+#dash-root .pt-file:hover { background: var(--accent-soft); }
+#dash-root .pt-file:focus-visible { outline: 2px solid var(--accent); }
+#dash-root .pt-file .pt-nm { flex: 1; min-width: 0; font-size: .9rem; line-height: 1.3; overflow-wrap: anywhere; }
+#dash-root .pt-file .pt-nm small { display: block; font-size: .74rem; color: var(--color-fg-muted); }
+#dash-root .pt-meta { font-size: .74rem; color: var(--color-fg-muted); white-space: nowrap; }
+#dash-root .pt-ic { flex: none; width: 46px; text-align: center; font-size: .66rem; font-weight: 800; letter-spacing: .04em; padding: 4px 0; border-radius: 6px; color: #fff; }
+#dash-root .pt-pdf { background: #d64545; } #dash-root .pt-ppt { background: #d9772b; } #dash-root .pt-doc { background: #2f6fd1; } #dash-root .pt-xls { background: #1f9d55; }
+#dash-root .pt-vid { background: #8b5cf6; } #dash-root .pt-img { background: #0ea5a4; } #dash-root .pt-zip { background: #64748b; } #dash-root .pt-lain { background: #475569; }
+#dash-root .pt-empty { color: var(--color-fg-muted); margin: 0; }
+@media (max-width: 640px) { #dash-root .pt-meta { display: none; } }
+#dash-root .pt-viewer { width: min(1200px, 96vw); height: 92vh; max-height: 92vh; padding: 0; border: 1px solid var(--color-border-line); border-radius: 14px; background: var(--color-panel); color: var(--color-fg); overflow: hidden; }
+#dash-root .pt-viewer[open] { display: flex; flex-direction: column; }
+#dash-root .pt-viewer::backdrop { background: rgba(2,10,14,.72); }
+#dash-root .pt-v-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--color-border-line); }
+#dash-root .pt-v-t { min-width: 0; flex: 1 1 300px; display: flex; flex-direction: column; gap: 2px; }
+#dash-root .pt-v-t b { overflow-wrap: anywhere; }
+#dash-root .pt-v-t small { color: var(--color-fg-muted); font-size: .78rem; }
+#dash-root .pt-v-act { display: flex; gap: 8px; flex-wrap: wrap; }
+#dash-root .pt-v-act a.rp-btn { text-decoration: none; }
+#dash-root .pt-v-isi { flex: 1; min-height: 0; background: #0b1419; }
+#dash-root .pt-v-isi iframe { width: 100%; height: 100%; border: 0; display: block; }
+#dash-root .pt-v-kosong { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 24px; }
+body.pt-modal { overflow: hidden; }
 </style>
 </head>
 <body>
@@ -381,6 +427,7 @@ body { background: var(--color-bg); }
     <a href="#penyebab" data-nav="penyebab"><span aria-hidden="true">⚑</span>Penyebab per umur</a>
     <a href="#tren" data-nav="tren"><span aria-hidden="true">↗</span>Tren bulanan</a>
     <a href="#materi" data-nav="materi"><span aria-hidden="true">▤</span>Materi presentasi</a>
+    <a href="#peraturan" data-nav="peraturan"><span aria-hidden="true">§</span>Peraturan TEL</a>
     <a href="#catatan" data-nav="catatan"><span aria-hidden="true">Σ</span>Catatan</a>
   </nav>
   <p class="rp-side-h">Tahun kontrak</p>
@@ -766,6 +813,30 @@ body { background: var(--color-bg); }
     </div>
   </section>
 
+  <section class="rp-sec" id="peraturan" data-tab="peraturan">
+    <h2>Peraturan TEL</h2>
+    <div class="rp-card pt-bar">
+      <div class="rp-ch"><h3>Kumpulan peraturan, SOP &amp; referensi teknik</h3><p class="rp-cap"><span id="pt-jumlah">—</span> · <span id="pt-sumber">Memuat…</span>. Klik judul dokumen untuk membacanya langsung di dashboard.</p></div>
+      <div class="pt-tools">
+        <label class="pt-search"><span class="sr">Cari dokumen</span><input id="pt-cari" type="search" placeholder="Cari judul dokumen, mis. SPLN D3.009, P2TL, SOP…" autocomplete="off"></label>
+        <label class="rp-dd"><span>Jenis</span><select id="pt-jenis" aria-label="Jenis file"></select></label>
+      </div>
+      <div class="rp-seg pt-kat" id="pt-kat" role="group" aria-label="Kategori folder"></div>
+    </div>
+    <div id="pt-isi" class="pt-isi"></div>
+    <dialog id="pt-viewer" class="pt-viewer" aria-labelledby="pt-v-judul">
+      <div class="pt-v-head">
+        <div class="pt-v-t"><b id="pt-v-judul"></b><small id="pt-v-info"></small></div>
+        <div class="pt-v-act">
+          <a id="pt-v-buka" class="rp-btn" target="_blank" rel="noopener">Buka di Drive ↗</a>
+          <a id="pt-v-unduh" class="rp-btn" target="_blank" rel="noopener">Unduh</a>
+          <button type="button" id="pt-v-tutup" class="rp-btn primary" aria-label="Tutup penampil">Tutup ✕</button>
+        </div>
+      </div>
+      <div id="pt-v-isi" class="pt-v-isi"></div>
+    </dialog>
+  </section>
+
   <section class="rp-sec" id="catatan" data-tab="catatan">
     <h2>Catatan perhitungan</h2>
     <ul class="rp-notes">
@@ -789,9 +860,10 @@ body { background: var(--color-bg); }
 <script src="app.js?v=20261105-11"></script>
 <script src="rekap.js?v=20261105-28"></script>
 <script src="gambar.js?v=20261105-28"></script>
-<script src="tata.js?v=20261105-23"></script>
+<script src="tata.js?v=20261109-1"></script>
 <script>window.DIL_VERSI = "202412-202609-1";</script>
 <script src="materi.js?v=20261109-2" defer></script>
+<script src="peraturan.js?v=20261109-1"></script>
 <script src="dil.js?v=20261105-21"></script>
 </body>
 </html>

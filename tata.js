@@ -47,7 +47,7 @@
     document.querySelectorAll('#dash-root [data-tab]').forEach((s) => { s.hidden = s.dataset.tab !== id; });
     if (scroll) window.scrollTo({ top: 0 });
     // grafik di tab yang baru tampil digambar ulang setelah punya lebar
-    requestAnimationFrame(() => { dash.setParams({}); if (id === 'dil' && window.DIL_GAMBAR) window.DIL_GAMBAR(); if (id === 'materi' && window.MATERI_GAMBAR) window.MATERI_GAMBAR(); });
+    requestAnimationFrame(() => { dash.setParams({}); if (id === 'dil' && window.DIL_GAMBAR) window.DIL_GAMBAR(); if (id === 'materi' && window.MATERI_GAMBAR) window.MATERI_GAMBAR(); if (id === 'peraturan' && window.PERATURAN_GAMBAR) window.PERATURAN_GAMBAR(); });
   };
   links.forEach((a) => a.addEventListener('click', (e) => {
     e.preventDefault();
