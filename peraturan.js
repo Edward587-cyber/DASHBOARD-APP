@@ -29,7 +29,7 @@
   const hitung = (ns) => ns.reduce((s, n) => s + ('c' in n ? hitung(n.c) : 1), 0);
   const ratakan = (ns, jalur = []) => ns.flatMap((n) => ('c' in n ? ratakan(n.c, [...jalur, n.n]) : [{ ...n, jalur }]));
 
-  const S = { pohon: null, sumber: '', tanggal: '', kat: 'semua', jenis: 'semua', cari: '', memuat: false, galat: '' };
+  const S = { pohon: null, sumber: '', tanggal: '', kat: 'semua', jenis: 'semua', cari: '', memuat: false, galat: '', sinkron: false, waktu: null, ketSinkron: '' };
 
   // ---------- sumber data (terenkripsi) ----------
   async function buka(sandi) {
@@ -42,11 +42,45 @@
     try { plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data); } catch (e) { throw new Error('Kata sandi salah'); }
     return JSON.parse(await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
   }
+  // Isi folder dibaca langsung dari Google Drive (ID folder hanya ada di dalam file terenkripsi),
+  // sehingga file baru di Drive otomatis ikut tampil. Bila gagal, dipakai daftar salinan.
+  const FOLDER = 'application/vnd.google-apps.folder';
+  async function bacaLangsung(root) {
+    const key = window.DASH_CONFIG && window.DASH_CONFIG.apiKey;
+    if (!key || !root) throw new Error('tanpa API key / folder');
+    const isi = async (id) => {
+      let out = [], token = '';
+      do {
+        const u = 'https://www.googleapis.com/drive/v3/files?pageSize=1000&q=' + encodeURIComponent("'" + id + "' in parents and trashed=false") +
+          '&fields=' + encodeURIComponent('nextPageToken,files(id,name,mimeType,size,modifiedTime,fileExtension)') + '&key=' + key + (token ? '&pageToken=' + token : '');
+        const r = await fetch(u, { cache: 'no-store' });
+        if (!r.ok) { let m = 'Drive ' + r.status; try { m = (await r.json()).error.message || m; } catch (e) { /* abaikan */ } throw new Error(m); }
+        const j = await r.json(); out = out.concat(j.files || []); token = j.nextPageToken || '';
+      } while (token);
+      return Promise.all(out.map(async (f) => (f.mimeType === FOLDER ? { id: f.id, n: f.name, c: await isi(f.id) }
+        : { id: f.id, n: f.name, t: (f.fileExtension || f.mimeType.split('/').pop()).toLowerCase(), s: Number(f.size || 0), m: (f.modifiedTime || '').slice(0, 10) })));
+    };
+    const pohon = await isi(root);
+    if (!hitung(pohon)) throw new Error('folder kosong atau belum dibagikan');
+    return pohon;
+  }
+  let ROOT = null;
+  async function sinkron() {
+    if (!ROOT || S.sinkron) return;
+    S.sinkron = true; gambar();
+    try { const p = await bacaLangsung(ROOT); if (S.pohon) { S.pohon = rapikan(p); S.sumber = 'langsung'; S.waktu = new Date(); S.ketSinkron = ''; } }
+    catch (e) { S.ketSinkron = e.message; console.warn('Sinkron Drive gagal:', e.message); }
+    S.sinkron = false;
+    const jen = $('#pt-jenis'); if (jen && S.pohon) { const v = S.jenis; jen.replaceChildren(); S.jenis = v; }
+    gambar();
+    const jen2 = $('#pt-jenis'); if (jen2) jen2.value = S.jenis;
+  }
   async function muat(sandi) {
     if (S.memuat) return;
     S.memuat = true; S.galat = ''; gambar();
     try {
       const j = await buka(sandi);
+      ROOT = j.root || null;
       S.pohon = rapikan(j.isi); S.tanggal = j.dibuat; S.sumber = 'salinan';
       try { sessionStorage.setItem(SKEY, sandi); } catch (e) { /* abaikan */ }
     } catch (e) {
@@ -54,8 +88,9 @@
       try { sessionStorage.removeItem(SKEY); } catch (e2) { /* abaikan */ }
     }
     S.memuat = false; gambar();
+    if (S.pohon) sinkron();
   }
-  const kunci = () => { S.pohon = null; S.galat = ''; S.cari = ''; S.kat = 'semua'; S.jenis = 'semua'; const c = $('#pt-cari'); if (c) c.value = ''; try { sessionStorage.removeItem(SKEY); } catch (e) { /* abaikan */ } const j = $('#pt-jenis'); if (j) j.replaceChildren(); gambar(); };
+  const kunci = () => { ROOT = null; S.pohon = null; S.galat = ''; S.cari = ''; S.kat = 'semua'; S.jenis = 'semua'; const c = $('#pt-cari'); if (c) c.value = ''; try { sessionStorage.removeItem(SKEY); } catch (e) { /* abaikan */ } const j = $('#pt-jenis'); if (j) j.replaceChildren(); gambar(); };
 
   // ---------- penampil ----------
   const urlPratinjau = (f) => 'https://drive.google.com/file/d/' + f.id + '/preview';
@@ -119,7 +154,9 @@
       if (!S.memuat) setTimeout(() => inp.focus({ preventScroll: true }), 0);
       return;
     }
-    if (info) info.textContent = 'Daftar per ' + tgl(S.tanggal);
+    if (info) info.textContent = S.sinkron ? 'Menyinkronkan dengan Google Drive…'
+      : S.sumber === 'langsung' ? 'Tersinkron otomatis dengan Google Drive (' + S.waktu.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ')'
+      : 'Daftar per ' + tgl(S.tanggal) + (S.ketSinkron ? ' (sinkron otomatis belum aktif)' : '');
     // kategori (folder tingkat pertama)
     const kat = $('#pt-kat');
     if (kat) {
@@ -164,6 +201,6 @@
   });
   window.PERATURAN_GAMBAR = () => {
     let sandi = null; try { sandi = sessionStorage.getItem(SKEY); } catch (e) { /* abaikan */ }
-    if (!S.pohon && sandi && !S.galat) muat(sandi); else gambar();
+    if (!S.pohon && sandi && !S.galat) muat(sandi); else { gambar(); if (S.pohon && (!S.waktu || Date.now() - S.waktu > 300000)) sinkron(); }
   };
 })();
