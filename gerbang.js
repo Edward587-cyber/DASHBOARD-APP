@@ -6,7 +6,7 @@
 (() => {
   const SKRIP = [
     'sumber.js?v=20261105-28', 'app.js?v=20261112-1', 'rekap.js?v=20261105-28', 'gambar.js?v=20261105-28',
-    'tata.js?v=20261112-1', 'materi.js?v=20261109-2', 'peraturan.js?v=20261112-2', 'dil.js?v=20261112-2',
+    'tata.js?v=20261112-1', 'materi.js?v=20261109-2', 'peraturan.js?v=20261112-2', 'dil.js?v=20261112-3',
   ];
   const SIMPAN = 'dash-kunci';
   const te = new TextEncoder();

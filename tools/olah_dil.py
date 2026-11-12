@@ -113,7 +113,7 @@ def fasa(d):
 def kelas_umur(u):
     if pd.isna(u):
         return 'Tahun tidak tercatat'
-    return '0 – 5 tahun' if u <= 5 else '> 5 – 10 tahun' if u <= 10 else '> 10 – 15 tahun' if u <= 15 else '> 15 – 20 tahun' if u <= 20 else '> 20 tahun'
+    return '0 – 5 tahun' if u <= 5 else '> 5 – 10 tahun' if u <= 10 else '> 10 – 14 tahun' if u <= 14 else '> 14 – 20 tahun' if u <= 20 else '> 20 tahun'
 
 
 def main(f_awal, f_akhir, out='data/dil'):

@@ -288,7 +288,7 @@
   }
 
   // ---------- breakdown meter belum diganti per kelas umur ----------
-  const KELAS = [['0 – 5 tahun', '#34d399'], ['> 5 – 10 tahun', '#a3e635'], ['> 10 – 15 tahun', '#facc15'], ['> 15 – 20 tahun', '#fb923c'], ['> 20 tahun', '#f87171'], ['Tahun tidak tercatat', 'var(--cds-chart-muted)']];
+  const KELAS = [['0 – 5 tahun', '#34d399'], ['> 5 – 10 tahun', '#a3e635'], ['> 10 – 14 tahun', '#facc15'], ['> 14 – 20 tahun', '#fb923c'], ['> 20 tahun', '#f87171'], ['Tahun tidak tercatat', 'var(--cds-chart-muted)']];
   const BU = { pilih: 'Semua|Semua' };
   function belumUmur() {
     const box = $('#dil-bu-chart'), tb = $('#dil-bu-tbl'); if (!box || !tb) return;
@@ -312,10 +312,10 @@
     const ft = tb.tFoot; ft.replaceChildren();
     const tr = el('tr', 'total'); tr.append(el('td', 'l', 'Total belum diganti'), el('td', '', nf.format(tot)), el('td', '', '100%'), el('td', 'l', ''));
     ft.append(tr);
-    const tua = sum(rows.filter((r) => ['> 15 – 20 tahun', '> 20 tahun'].includes(r.kelas)), 'jumlah');
+    const tua = sum(rows.filter((r) => ['> 14 – 20 tahun', '> 20 tahun'].includes(r.kelas)), 'jumlah');
     const cap = $('#dil-bu-cap');
     if (cap) cap.textContent = 'Meter yang nomornya masih sama di DIL ' + S.ring.periode_akhir + ' (belum diganti), umur dihitung terhadap tahun ' + S.ring.tahun_acuan_umur +
-      '. Fasa ditentukan dari daya: 1 phasa s.d. 11.000 VA (kecuali 6.600 & 10.600 VA), 3 phasa 6.600 VA, 10.600 VA dan > 11.000 VA. ' + nf.format(tua) + ' meter berumur > 15 tahun.';
+      '. Fasa ditentukan dari daya: 1 phasa s.d. 11.000 VA (kecuali 6.600 & 10.600 VA), 3 phasa 6.600 VA, 10.600 VA dan > 11.000 VA. ' + nf.format(tua) + ' meter berumur > 14 tahun.';
   }
 
   // ---------- kontrol ----------
