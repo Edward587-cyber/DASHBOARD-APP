@@ -419,9 +419,44 @@ body { background: var(--color-bg); }
 #dash-root .pt-v-isi iframe { width: 100%; height: 100%; border: 0; display: block; }
 #dash-root .pt-v-kosong { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 24px; }
 body.pt-modal { overflow: hidden; }
+/* ---------- gerbang masuk ---------- */
+body.terkunci #dash-root, body.terkunci .rp-shell { display: none !important; }
+.gb { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; background: radial-gradient(1200px 600px at 20% 0%, #0f2f3a, #08161d 60%); z-index: 50; font-family: inherit; }
+.gb[hidden] { display: none; }
+.gb-card { width: min(400px, 100%); box-sizing: border-box; background: #0f2530; border: 1px solid #1f3a46; border-radius: 16px; padding: 32px 28px; display: flex; flex-direction: column; gap: 10px; color: #e8f1f4; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+.gb-card img { width: 56px; height: 56px; object-fit: contain; }
+.gb-card h1 { margin: 6px 0 0; font-size: 1.35rem; letter-spacing: .04em; }
+.gb-card h1 span { color: #2dd4bf; }
+.gb-card p { margin: 0; color: #94a9b3; font-size: .9rem; }
+.gb-l { margin-top: 10px; font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #94a9b3; }
+.gb-card #gb-sandi { font: inherit; font-size: 1rem; color: #e8f1f4; background: #0b1d26; border: 1px solid #26404c; border-radius: 10px; padding: 11px 14px; }
+.gb-card #gb-sandi:focus-visible { outline: 2px solid #2dd4bf; outline-offset: 1px; }
+.gb-cek { display: flex; align-items: center; gap: 8px; font-size: .88rem; color: #c3d3d9; cursor: pointer; }
+.gb-card button { margin-top: 6px; font: inherit; font-weight: 700; font-size: 1rem; padding: 11px; border: 0; border-radius: 10px; background: #2dd4bf; color: #062a26; cursor: pointer; }
+.gb-card button:disabled { opacity: .7; cursor: wait; }
+.gb-card button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.gb-err { color: #f87171 !important; font-weight: 600; min-height: 1.2em; }
+.gb-help { font-size: .8rem !important; }
+.rp-keluar { margin: 18px 10px 8px; font: inherit; font-weight: 600; font-size: .9rem; color: var(--color-fg-muted); background: transparent; border: 1px solid var(--color-border-line); border-radius: 10px; padding: 9px 12px; cursor: pointer; text-align: left; }
+.rp-atur { margin: 0 10px 12px; font-size: .82rem; color: var(--color-fg-muted); }
+.rp-keluar:hover { color: #f87171; border-color: #f87171; }
 </style>
 </head>
-<body>
+<body class="terkunci">
+<div id="gerbang" class="gb" hidden>
+  <form class="gb-card" autocomplete="on">
+    <img src="logo-pln.png" alt="PLN" width="56" height="56">
+    <h1>MONITORING <span>DAL APP</span></h1>
+    <p>Dashboard internal. Masukkan kata sandi untuk melanjutkan.</p>
+    <input type="text" name="username" value="dal-app" autocomplete="username" hidden>
+    <label class="gb-l" for="gb-sandi">Kata sandi</label>
+    <input id="gb-sandi" type="password" autocomplete="current-password" required>
+    <label class="gb-cek"><input type="checkbox" id="gb-ingat"> Ingat di perangkat ini</label>
+    <button type="submit">Masuk</button>
+    <p class="gb-err" role="alert"></p>
+    <p class="gb-help">Lupa / ingin mengganti kata sandi? Hubungi SPV Dal APP UP3 Ciracas.</p>
+  </form>
+</div>
 <div id="dash-root">
 <div class="rp-shell">
 <aside class="rp-side">
@@ -443,6 +478,8 @@ body.pt-modal { overflow: hidden; }
   <div class="rp-years" id="pilih-tahun" role="group" aria-label="Pilih tahun kontrak"></div>
   <p class="rp-side-h">Kontrak <span id="side-tahun"></span></p>
   <div class="rp-klist" id="pilih-kontrak" role="group" aria-label="Pilih kontrak"></div>
+  <button type="button" class="rp-keluar" onclick="window.DASH_KELUAR && window.DASH_KELUAR()">Keluar ⏻</button>
+  <a class="rp-atur" href="atur-sandi.html">Atur kata sandi</a>
 </aside>
 <main class="rp-main">
 
@@ -867,15 +904,7 @@ body.pt-modal { overflow: hidden; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="config.js?v=20261105-11"></script>
-<script src="sumber.js?v=20261105-28"></script>
-<script src="app.js?v=20261105-11"></script>
-<script src="rekap.js?v=20261105-28"></script>
-<script src="gambar.js?v=20261105-28"></script>
-<script src="tata.js?v=20261109-1"></script>
 <script>window.DIL_VERSI = "202412-202609-1";</script>
-<script src="materi.js?v=20261109-2" defer></script>
-<script src="peraturan.js?v=20261112-1"></script>
-<script src="dil.js?v=20261105-21"></script>
+<script src="gerbang.js?v=20261112-1"></script>
 </body>
 </html>

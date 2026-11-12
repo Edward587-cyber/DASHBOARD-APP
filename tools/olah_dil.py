@@ -4,7 +4,7 @@ Pakai:  pip install pandas python-calamine
         pip install cryptography
         DIL_SANDI='kata-sandi' python tools/olah_dil.py DIL_SALDO_MASK_202506_...xlsx DIL_SALDO_MASK_202609_...xlsx
 
-Hasil: data/dil/ringkasan.json (rekap tanpa data pelanggan) dan data/dil/detail.enc (terenkripsi AES-GCM dengan DIL_SANDI)
+Hasil: data/dil/ringkasan.enc (rekap tanpa data pelanggan, terenkripsi kunci data dashboard; env DASH_KUNCI) dan data/dil/detail.enc (terenkripsi AES-GCM dengan DIL_SANDI)
 (baris per pelanggan untuk unduhan: hanya pelanggan target umur atau yang meternya terganti;
 tanpa nama, alamat, dan koordinat).
 """
@@ -178,8 +178,12 @@ def main(f_awal, f_akhir, out='data/dil'):
         'peta': peta,
     }
     os.makedirs(out, exist_ok=True)
-    with open(os.path.join(out, 'ringkasan.json'), 'w', encoding='utf-8') as f:
-        json.dump(ring, f, ensure_ascii=False, separators=(',', ':'))
+    # Ringkasan dienkripsi dengan kunci data dashboard (kunci pemulihan di env DASH_KUNCI).
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from kunci_dashboard import enkrip as enkrip_dk, kunci_dari
+    if not os.environ.get('DASH_KUNCI'):
+        sys.exit('Set DASH_KUNCI = kunci pemulihan dashboard (lihat README).')
+    enkrip_dk(kunci_dari(os.environ['DASH_KUNCI']), ring, os.path.join(out, 'ringkasan.enc'))
 
     d = m[m.TARGET | (m.STATUS == 'Terganti')]
     cols = {'IDPEL': 'IDPEL', 'JENIS': 'JENIS', 'TARIF': 'TARIF', 'DAYA': 'DAYA', 'KECAMATAN': 'KECAMATAN', 'KELURAHAN': 'KELURAHAN', 'NOMOR_GARDU': 'GARDU',

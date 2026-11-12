@@ -1,4 +1,4 @@
-// Bagian "Peta umur meter (DIL)": membaca data/dil/ringkasan.json (rekap) dan, saat diunduh, data/dil/detail.enc (terenkripsi).
+// Bagian "Peta umur meter (DIL)": membaca data/dil/ringkasan.enc (rekap, terenkripsi kunci data dashboard) dan, saat diunduh, data/dil/detail.enc (terenkripsi).
 (() => {
   const R = window.RP;
   const { nf, pf } = R;
@@ -316,7 +316,7 @@
     pasang();
     ['#dil-umur', '#dil-bulan', '#dil-merk', '#dil-pie-paska', '#dil-pie-pra', '#dil-pie-semua', '#dil-pie-kosong'].forEach((s) => { const e = $(s); if (e) R.memuat(e); });
     try {
-      S.ring = await fetch('data/dil/ringkasan.json' + V).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+      S.ring = await window.DASH_BUKA('data/dil/ringkasan.enc' + V);
       window.DIL_RING = S.ring; window.dispatchEvent(new Event('dil-siap'));
       gambar();
     } catch (e) {
