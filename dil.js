@@ -287,6 +287,37 @@
     }
   }
 
+  // ---------- breakdown meter belum diganti per kelas umur ----------
+  const KELAS = [['0 – 5 tahun', '#34d399'], ['> 5 – 10 tahun', '#a3e635'], ['> 10 – 15 tahun', '#facc15'], ['> 15 – 20 tahun', '#fb923c'], ['> 20 tahun', '#f87171'], ['Tahun tidak tercatat', 'var(--cds-chart-muted)']];
+  const BU = { pilih: 'Semua|Semua' };
+  function belumUmur() {
+    const box = $('#dil-bu-chart'), tb = $('#dil-bu-tbl'); if (!box || !tb) return;
+    if (!S.ring.belum_umur) { R.failed(box); return; }
+    const [j, f] = BU.pilih.split('|');
+    const ok = (r) => (j === 'Semua' || r.jenis === j) && (f === 'Semua' || r.fasa === f);
+    const rows = S.ring.belum_umur.filter(ok);
+    const tot = sum(rows, 'jumlah');
+    const cats = KELAS.map(([k, col]) => { const n = sum(rows.filter((r) => r.kelas === k), 'jumlah'); return { label: k, total: n, col, end: nf.format(n) + ' · ' + pf.format(tot ? n / tot : 0) }; }).filter((c) => c.total > 0 || !c.label.startsWith('Tahun'));
+    R.hstack(box, cats, (c) => [{ v: c.total, color: c.col, op: 1 }], { tip: (c) => [[c.col, 1, c.label, nf.format(c.total)], [null, 1, 'Porsi', pf.format(tot ? c.total / tot : 0)]] });
+    const merkRows = (S.ring.belum_umur_merk || []).filter(ok);
+    const body = tb.tBodies[0]; body.replaceChildren();
+    cats.forEach((c) => {
+      const m = {}; merkRows.filter((r) => r.kelas === c.label).forEach((r) => { m[r.merk] = (m[r.merk] || 0) + r.jumlah; });
+      const top = Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => k + ' (' + nf.format(v) + ')').join(', ');
+      const tr = el('tr');
+      const td0 = el('td', 'l'); const sw = el('i', 'dil-sw'); sw.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;background:' + c.col; td0.append(sw, c.label);
+      tr.append(td0, el('td', '', nf.format(c.total)), el('td', '', pf.format(tot ? c.total / tot : 0)), el('td', 'l wrap', top || '—'));
+      body.append(tr);
+    });
+    const ft = tb.tFoot; ft.replaceChildren();
+    const tr = el('tr', 'total'); tr.append(el('td', 'l', 'Total belum diganti'), el('td', '', nf.format(tot)), el('td', '', '100%'), el('td', 'l', ''));
+    ft.append(tr);
+    const tua = sum(rows.filter((r) => ['> 15 – 20 tahun', '> 20 tahun'].includes(r.kelas)), 'jumlah');
+    const cap = $('#dil-bu-cap');
+    if (cap) cap.textContent = 'Meter yang nomornya masih sama di DIL ' + S.ring.periode_akhir + ' (belum diganti), umur dihitung terhadap tahun ' + S.ring.tahun_acuan_umur +
+      '. Fasa ditentukan dari daya: 1 phasa s.d. 11.000 VA (kecuali 6.600 & 10.600 VA), 3 phasa 6.600 VA, 10.600 VA dan > 11.000 VA. ' + nf.format(tua) + ' meter berumur > 15 tahun.';
+  }
+
   // ---------- kontrol ----------
   function tekan(sel, attr, cur) { document.querySelectorAll(sel).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset[attr] === cur))); }
   function gambar() {
@@ -294,12 +325,13 @@
     tekan('#dil [data-dj]', 'dj', S.jenis);
     tekan('#dil [data-ds]', 'ds', S.status);
     tekan('#dil [data-ks]', 'ks', S.kelSort);
-    kpi(); klasifikasi(); peta(); umur(); bulan(); merk(); kelurahan();
+    kpi(); klasifikasi(); peta(); belumUmur(); umur(); bulan(); merk(); kelurahan();
   }
   function pasang() {
     document.querySelectorAll('#dil [data-dj]').forEach((b) => b.addEventListener('click', () => { S.jenis = b.dataset.dj; gambar(); }));
     document.querySelectorAll('#dil [data-ds]').forEach((b) => b.addEventListener('click', () => { S.status = b.dataset.ds; peta(); tekan('#dil [data-ds]', 'ds', S.status); }));
     document.querySelectorAll('#dil [data-ks]').forEach((b) => b.addEventListener('click', () => { S.kelSort = b.dataset.ks; kelurahan(); tekan('#dil [data-ks]', 'ks', S.kelSort); }));
+    $('#dil-bu-sel')?.addEventListener('change', (e) => { BU.pilih = e.target.value; belumUmur(); });
     $('#dil-kel-cari')?.addEventListener('input', (e) => { S.kelCari = e.target.value.trim().toUpperCase(); kelurahan(); });
     const coba = () => hitungDl().catch((e) => { $('#dil-dl-info').textContent = e.message === 'Kata sandi kosong' ? 'Masukkan kata sandi untuk membuka data detail.' : 'Gagal membuka: ' + e.message; });
     $('#dil-dl-jenis')?.addEventListener('change', (e) => { D.jenis = e.target.value; if (S.detail) coba(); });
@@ -314,7 +346,7 @@
 
   async function mulai() {
     pasang();
-    ['#dil-umur', '#dil-bulan', '#dil-merk', '#dil-pie-paska', '#dil-pie-pra', '#dil-pie-semua', '#dil-pie-kosong'].forEach((s) => { const e = $(s); if (e) R.memuat(e); });
+    ['#dil-bu-chart', '#dil-umur', '#dil-bulan', '#dil-merk', '#dil-pie-paska', '#dil-pie-pra', '#dil-pie-semua', '#dil-pie-kosong'].forEach((s) => { const e = $(s); if (e) R.memuat(e); });
     try {
       S.ring = await window.DASH_BUKA('data/dil/ringkasan.enc' + V);
       window.DIL_RING = S.ring; window.dispatchEvent(new Event('dil-siap'));

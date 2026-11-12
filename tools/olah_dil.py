@@ -99,6 +99,23 @@ def cluster(u):
     return '< 5 tahun' if u < 5 else '5 – < 10 tahun' if u < 10 else '10 – < 15 tahun' if u < 15 else '≥ 15 tahun'
 
 
+# Fasa dari DAYA (VA): PLN 1 fasa = 450 s.d. 11.000 VA (450, 900, 1300, 2200, 3500, 4400, 5500, 7700, 11000);
+# 3 fasa = 6.600, 10.600, 13.200, 16.500, 23.000, 33.000 VA dan di atas 11.000 VA. (KODE_FASA di DIL tidak konsisten.)
+DAYA_3F = {6600, 10600, 13200, 16500, 23000, 33000}
+
+
+def fasa(d):
+    if pd.isna(d):
+        return 'Tidak tercatat'
+    return '3 Phasa' if d in DAYA_3F or d > 11000 else '1 Phasa'
+
+
+def kelas_umur(u):
+    if pd.isna(u):
+        return 'Tahun tidak tercatat'
+    return '0 – 5 tahun' if u <= 5 else '> 5 – 10 tahun' if u <= 10 else '> 10 – 15 tahun' if u <= 15 else '> 15 – 20 tahun' if u <= 20 else '> 20 tahun'
+
+
 def main(f_awal, f_akhir, out='data/dil'):
     a, b = baca(f_awal), baca(f_akhir)
     p_awal, p_akhir = periode(f_awal, a), periode(f_akhir, b)
@@ -128,6 +145,8 @@ def main(f_awal, f_akhir, out='data/dil'):
     m['TARGET'] = ((m.JENISLAYANAN == 'PASKABAYAR') & (m.UMUR >= UMUR_PASKA)) | ((m.JENISLAYANAN == 'PRABAYAR') & (m.UMUR >= UMUR_PRA))
     m['CLUSTER'] = m.UMUR.map(cluster)
     m['MERK'] = m.MERK_METER_KWH.map(merk)
+    m['FASA'] = m.DAYA.map(fasa)
+    m['KELAS_UMUR'] = m.UMUR.map(kelas_umur)
     def ambil(nama):
         # utamakan DIL akhir, bila kosong pakai DIL awal
         akhir = m.get(nama + '_BARU', m.get(nama) if nama not in a.columns else None)
@@ -176,6 +195,11 @@ def main(f_awal, f_akhir, out='data/dil'):
         'per_merk': grp(['JENIS', 'MERK', 'TARGET']),
         'per_kelurahan': grp(['JENIS', 'KECAMATAN', 'KELURAHAN', 'TARGET']),
         'peta': peta,
+        # meter belum diganti (nomor meter sama di DIL akhir) per jenis, fasa, kelas umur (dan merk)
+        'belum_umur': json.loads(m[m.STATUS == 'Belum terganti'].groupby(['JENIS', 'FASA', 'KELAS_UMUR']).size().reset_index(name='jumlah')
+                                 .rename(columns={'JENIS': 'jenis', 'FASA': 'fasa', 'KELAS_UMUR': 'kelas'}).to_json(orient='records')),
+        'belum_umur_merk': json.loads(m[m.STATUS == 'Belum terganti'].groupby(['JENIS', 'FASA', 'KELAS_UMUR', 'MERK']).size().reset_index(name='jumlah')
+                                      .rename(columns={'JENIS': 'jenis', 'FASA': 'fasa', 'KELAS_UMUR': 'kelas', 'MERK': 'merk'}).to_json(orient='records')),
     }
     os.makedirs(out, exist_ok=True)
     # Ringkasan dienkripsi dengan kunci data dashboard (kunci pemulihan di env DASH_KUNCI).
@@ -186,7 +210,7 @@ def main(f_awal, f_akhir, out='data/dil'):
     enkrip_dk(kunci_dari(os.environ['DASH_KUNCI']), ring, os.path.join(out, 'ringkasan.enc'))
 
     d = m[m.TARGET | (m.STATUS == 'Terganti')]
-    cols = {'IDPEL': 'IDPEL', 'JENIS': 'JENIS', 'TARIF': 'TARIF', 'DAYA': 'DAYA', 'KECAMATAN': 'KECAMATAN', 'KELURAHAN': 'KELURAHAN', 'NOMOR_GARDU': 'GARDU',
+    cols = {'IDPEL': 'IDPEL', 'JENIS': 'JENIS', 'TARIF': 'TARIF', 'DAYA': 'DAYA', 'FASA': 'FASA', 'KECAMATAN': 'KECAMATAN', 'KELURAHAN': 'KELURAHAN', 'NOMOR_GARDU': 'GARDU',
             'MERK_METER_KWH': 'MERK_LAMA', 'TYPE_METER_KWH': 'TYPE_LAMA', 'TAHUN_METER': 'TAHUN_METER_LAMA', 'UMUR': 'UMUR', 'CLUSTER': 'CLUSTER_UMUR',
             'TARGET': 'TARGET_UMUR', 'NOMOR_METER_KWH': 'NO_METER_' + p_awal, 'STATUS': 'STATUS', 'VALIDASI': 'VALIDASI', 'NOMOR_METER_KWH_BARU': 'NO_METER_' + p_akhir,
             'MERK_METER_KWH_BARU': 'MERK_BARU', 'TAHUN_BUAT_METER_KWH_BARU': 'TAHUN_BUAT_BARU', 'JENISLAYANAN_BARU': 'JENIS_BARU', 'TGL_PASANG_BARU': 'TGL_PASANG_BARU'}
