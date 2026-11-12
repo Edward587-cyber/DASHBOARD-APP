@@ -64,7 +64,10 @@
     if (!hitung(pohon)) throw new Error('folder kosong atau belum dibagikan');
     return pohon;
   }
-  let ROOT = null;
+  let ROOT = null, SPLN = null;
+  // SPLN Online (intranet PLN, http): dibuka di tab baru dengan kata kunci dari dashboard.
+  const urlSpln = (q) => SPLN.url + '?' + new URLSearchParams({ text: q || '', bidang: 'All', status: 'All', order: 'terbaru', asc: 'desc', submit: 'Search' });
+  const cariSpln = (q) => { if (SPLN) window.open(urlSpln(q), '_blank', 'noopener'); };
   async function sinkron() {
     if (!ROOT || S.sinkron) return;
     S.sinkron = true; gambar();
@@ -80,7 +83,7 @@
     S.memuat = true; S.galat = ''; gambar();
     try {
       const j = await buka(sandi);
-      ROOT = j.root || null;
+      ROOT = j.root || null; SPLN = j.spln || null;
       S.pohon = rapikan(j.isi); S.tanggal = j.dibuat; S.sumber = 'salinan';
       try { sessionStorage.setItem(SKEY, sandi); } catch (e) { /* abaikan */ }
     } catch (e) {
@@ -90,7 +93,7 @@
     S.memuat = false; gambar();
     if (S.pohon) sinkron();
   }
-  const kunci = () => { ROOT = null; S.pohon = null; S.galat = ''; S.cari = ''; S.kat = 'semua'; S.jenis = 'semua'; const c = $('#pt-cari'); if (c) c.value = ''; try { sessionStorage.removeItem(SKEY); } catch (e) { /* abaikan */ } const j = $('#pt-jenis'); if (j) j.replaceChildren(); gambar(); };
+  const kunci = () => { ROOT = null; SPLN = null; S.pohon = null; S.galat = ''; S.cari = ''; S.kat = 'semua'; S.jenis = 'semua'; const c = $('#pt-cari'); if (c) c.value = ''; try { sessionStorage.removeItem(SKEY); } catch (e) { /* abaikan */ } const j = $('#pt-jenis'); if (j) j.replaceChildren(); gambar(); };
 
   // ---------- penampil ----------
   const urlPratinjau = (f) => 'https://drive.google.com/file/d/' + f.id + '/preview';
@@ -140,6 +143,7 @@
     $('#pt-alat')?.toggleAttribute('hidden', terkunci);
     $('#pt-kunci-btn')?.toggleAttribute('hidden', terkunci);
     if (terkunci) {
+      const ks = $('#pt-spln'); if (ks) { ks.hidden = true; ks.replaceChildren(); delete ks.dataset.siap; }
       $('#pt-jumlah').textContent = 'Terkunci';
       if (info) info.textContent = S.memuat ? 'Membuka…' : 'Masukkan kata sandi untuk melihat daftar dokumen';
       const inp = h('input', { type: 'password', id: 'pt-sandi', placeholder: 'Kata sandi', autocomplete: 'current-password', 'aria-label': 'Kata sandi Peraturan TEL' });
@@ -153,6 +157,19 @@
         S.galat ? h('p', { class: 'pt-err', role: 'alert' }, S.galat) : null));
       if (!S.memuat) setTimeout(() => inp.focus({ preventScroll: true }), 0);
       return;
+    }
+    const kartuSpln = $('#pt-spln');
+    if (kartuSpln) {
+      kartuSpln.hidden = !SPLN;
+      if (SPLN && !kartuSpln.dataset.siap) {
+        kartuSpln.dataset.siap = '1';
+        const q = h('input', { type: 'search', id: 'pt-spln-q', placeholder: 'Kata kunci SPLN, mis. kabel, kWh meter, D3.009…', autocomplete: 'off', 'aria-label': 'Kata kunci pencarian SPLN Online' });
+        const go = () => cariSpln(q.value.trim());
+        q.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+        kartuSpln.replaceChildren(
+          h('div', { class: 'rp-ch' }, h('h3', {}, SPLN.nama), h('p', { class: 'rp-cap' }, 'Cari standar di SPLN Online langsung dari dashboard. Hasil terbuka di tab baru — hanya dapat diakses dari jaringan internal PLN.')),
+          h('div', { class: 'pt-lock-row' }, q, h('button', { type: 'button', class: 'rp-btn primary', onclick: go }, 'Cari di SPLN Online ↗'), h('a', { class: 'rp-btn', href: urlSpln(''), target: '_blank', rel: 'noopener' }, 'Buka semua')));
+      }
     }
     if (info) info.textContent = S.sinkron ? 'Menyinkronkan dengan Google Drive…'
       : S.sumber === 'langsung' ? 'Tersinkron otomatis dengan Google Drive (' + S.waktu.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ')'

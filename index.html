@@ -403,6 +403,7 @@ body { background: var(--color-bg); }
 #dash-root .pt-lock-row input { flex: 1; min-width: 0; font: inherit; color: var(--color-fg); background: #0b1d26; border: 1px solid var(--color-border-line); border-radius: 10px; padding: 10px 14px; }
 #dash-root .pt-lock-row input:focus-visible { outline: 2px solid var(--accent); }
 #dash-root .pt-err { color: #f87171; margin: 0; font-weight: 600; }
+#dash-root .pt-spln[hidden] { display: none; } #dash-root .pt-spln .pt-lock-row a.rp-btn { text-decoration: none; display: inline-flex; align-items: center; } @media (max-width: 640px) { #dash-root .pt-spln .pt-lock-row { flex-wrap: wrap; } #dash-root .pt-spln .pt-lock-row input { flex-basis: 100%; } }
 #dash-root .pt-empty { color: var(--color-fg-muted); margin: 0; }
 @media (max-width: 640px) { #dash-root .pt-meta { display: none; } }
 #dash-root .pt-viewer { width: min(1200px, 96vw); height: 92vh; max-height: 92vh; padding: 0; border: 1px solid var(--color-border-line); border-radius: 14px; background: var(--color-panel); color: var(--color-fg); overflow: hidden; }
@@ -833,6 +834,7 @@ body.pt-modal { overflow: hidden; }
       <div class="rp-seg pt-kat" id="pt-kat" role="group" aria-label="Kategori folder"></div>
       </div>
     </div>
+    <div class="rp-card pt-spln" id="pt-spln" hidden></div>
     <div id="pt-isi" class="pt-isi"></div>
     <dialog id="pt-viewer" class="pt-viewer" aria-labelledby="pt-v-judul">
       <div class="pt-v-head">
@@ -873,7 +875,7 @@ body.pt-modal { overflow: hidden; }
 <script src="tata.js?v=20261109-1"></script>
 <script>window.DIL_VERSI = "202412-202609-1";</script>
 <script src="materi.js?v=20261109-2" defer></script>
-<script src="peraturan.js?v=20261109-4"></script>
+<script src="peraturan.js?v=20261112-1"></script>
 <script src="dil.js?v=20261105-21"></script>
 </body>
 </html>
