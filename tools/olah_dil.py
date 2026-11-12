@@ -195,11 +195,9 @@ def main(f_awal, f_akhir, out='data/dil'):
         'per_merk': grp(['JENIS', 'MERK', 'TARGET']),
         'per_kelurahan': grp(['JENIS', 'KECAMATAN', 'KELURAHAN', 'TARGET']),
         'peta': peta,
-        # meter belum diganti (nomor meter sama di DIL akhir) per jenis, fasa, kelas umur (dan merk)
-        'belum_umur': json.loads(m[m.STATUS == 'Belum terganti'].groupby(['JENIS', 'FASA', 'KELAS_UMUR']).size().reset_index(name='jumlah')
-                                 .rename(columns={'JENIS': 'jenis', 'FASA': 'fasa', 'KELAS_UMUR': 'kelas'}).to_json(orient='records')),
-        'belum_umur_merk': json.loads(m[m.STATUS == 'Belum terganti'].groupby(['JENIS', 'FASA', 'KELAS_UMUR', 'MERK']).size().reset_index(name='jumlah')
-                                      .rename(columns={'JENIS': 'jenis', 'FASA': 'fasa', 'KELAS_UMUR': 'kelas', 'MERK': 'merk'}).to_json(orient='records')),
+        # kelas umur per jenis & fasa, dengan status (terganti/belum/...) dan penanda target umur
+        'umur_kelas': grp(['JENIS', 'FASA', 'KELAS_UMUR', 'TARGET']),
+        'umur_kelas_merk': grp(['JENIS', 'FASA', 'KELAS_UMUR', 'MERK']),
     }
     os.makedirs(out, exist_ok=True)
     # Ringkasan dienkripsi dengan kunci data dashboard (kunci pemulihan di env DASH_KUNCI).

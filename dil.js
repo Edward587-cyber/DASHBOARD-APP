@@ -289,33 +289,41 @@
 
   // ---------- breakdown meter belum diganti per kelas umur ----------
   const KELAS = [['0 – 5 tahun', '#34d399'], ['> 5 – 10 tahun', '#a3e635'], ['> 10 – 14 tahun', '#facc15'], ['> 14 – 20 tahun', '#fb923c'], ['> 20 tahun', '#f87171'], ['Tahun tidak tercatat', 'var(--cds-chart-muted)']];
-  const BU = { pilih: 'Semua|Semua' };
+  const BU = { pilih: 'Semua|Semua', status: 'belum' };
+  const STATUS_BU = { belum: ['belum', 'belum diganti'], terganti: ['terganti', 'sudah diganti'], semua: ['jumlah', 'semua meter'] };
   function belumUmur() {
     const box = $('#dil-bu-chart'), tb = $('#dil-bu-tbl'); if (!box || !tb) return;
-    if (!S.ring.belum_umur) { R.failed(box); return; }
+    if (!S.ring.umur_kelas) { R.failed(box); return; }
     const [j, f] = BU.pilih.split('|');
+    const [kol, nama] = STATUS_BU[BU.status];
     const ok = (r) => (j === 'Semua' || r.jenis === j) && (f === 'Semua' || r.fasa === f);
-    const rows = S.ring.belum_umur.filter(ok);
-    const tot = sum(rows, 'jumlah');
-    const cats = KELAS.map(([k, col]) => { const n = sum(rows.filter((r) => r.kelas === k), 'jumlah'); return { label: k, total: n, col, end: nf.format(n) + ' · ' + pf.format(tot ? n / tot : 0) }; }).filter((c) => c.total > 0 || !c.label.startsWith('Tahun'));
-    R.hstack(box, cats, (c) => [{ v: c.total, color: c.col, op: 1 }], { tip: (c) => [[c.col, 1, c.label, nf.format(c.total)], [null, 1, 'Porsi', pf.format(tot ? c.total / tot : 0)]] });
-    const merkRows = (S.ring.belum_umur_merk || []).filter(ok);
+    const rows = S.ring.umur_kelas.filter(ok);
+    const tot = sum(rows, kol);
+    const cats = KELAS.map(([k, col]) => {
+      const r = rows.filter((x) => x.kelas_umur === k);
+      const n = sum(r, kol);
+      return { label: k, total: n, col, tgt: sum(r.filter((x) => x.target), kol), end: nf.format(n) + ' · ' + pf.format(tot ? n / tot : 0) };
+    }).filter((c) => c.total > 0 || !c.label.startsWith('Tahun'));
+    R.hstack(box, cats, (c) => [{ v: c.total, color: c.col, op: 1 }], { tip: (c) => [[c.col, 1, c.label, nf.format(c.total)], [null, 1, 'Porsi', pf.format(tot ? c.total / tot : 0)], [null, 1, 'Termasuk target umur', nf.format(c.tgt)]] });
+    const merkRows = (S.ring.umur_kelas_merk || []).filter(ok);
     const body = tb.tBodies[0]; body.replaceChildren();
     cats.forEach((c) => {
-      const m = {}; merkRows.filter((r) => r.kelas === c.label).forEach((r) => { m[r.merk] = (m[r.merk] || 0) + r.jumlah; });
-      const top = Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => k + ' (' + nf.format(v) + ')').join(', ');
+      const m = {}; merkRows.filter((r) => r.kelas_umur === c.label).forEach((r) => { m[r.merk] = (m[r.merk] || 0) + Number(r[kol] || 0); });
+      const top = Object.entries(m).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => k + ' (' + nf.format(v) + ')').join(', ');
       const tr = el('tr');
-      const td0 = el('td', 'l'); const sw = el('i', 'dil-sw'); sw.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;background:' + c.col; td0.append(sw, c.label);
-      tr.append(td0, el('td', '', nf.format(c.total)), el('td', '', pf.format(tot ? c.total / tot : 0)), el('td', 'l wrap', top || '—'));
+      const td0 = el('td', 'l'); const sw = el('i'); sw.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;background:' + c.col; td0.append(sw, c.label);
+      tr.append(td0, el('td', '', nf.format(c.total)), el('td', '', pf.format(tot ? c.total / tot : 0)), el('td', '', c.tgt ? nf.format(c.tgt) : '–'), el('td', 'l wrap', top || '—'));
       body.append(tr);
     });
     const ft = tb.tFoot; ft.replaceChildren();
-    const tr = el('tr', 'total'); tr.append(el('td', 'l', 'Total belum diganti'), el('td', '', nf.format(tot)), el('td', '', '100%'), el('td', 'l', ''));
+    const tTgt = sum(rows.filter((x) => x.target), kol);
+    const tr = el('tr', 'total'); tr.append(el('td', 'l', 'Total ' + nama), el('td', '', nf.format(tot)), el('td', '', '100%'), el('td', '', nf.format(tTgt)), el('td', 'l', ''));
     ft.append(tr);
-    const tua = sum(rows.filter((r) => ['> 14 – 20 tahun', '> 20 tahun'].includes(r.kelas)), 'jumlah');
+    const bu = S.ring.batas_umur;
     const cap = $('#dil-bu-cap');
-    if (cap) cap.textContent = 'Meter yang nomornya masih sama di DIL ' + S.ring.periode_akhir + ' (belum diganti), umur dihitung terhadap tahun ' + S.ring.tahun_acuan_umur +
-      '. Fasa ditentukan dari daya: 1 phasa s.d. 11.000 VA (kecuali 6.600 & 10.600 VA), 3 phasa 6.600 VA, 10.600 VA dan > 11.000 VA. ' + nf.format(tua) + ' meter berumur > 14 tahun.';
+    if (cap) cap.textContent = 'Status ' + nama + ' berdasarkan perbandingan DIL ' + S.ring.periode_awal + ' → ' + S.ring.periode_akhir + '; umur terhadap tahun ' + S.ring.tahun_acuan_umur +
+      '. Kolom "Target umur" = bagian yang termasuk target (paskabayar ≥ ' + bu.Paskabayar + ' th, prabayar ≥ ' + bu.Prabayar + ' th) — totalnya sama dengan kartu target di atas. ' +
+      'Fasa dari daya: 1 phasa s.d. 11.000 VA (kecuali 6.600 & 10.600 VA), selebihnya 3 phasa.';
   }
 
   // ---------- kontrol ----------
@@ -332,6 +340,7 @@
     document.querySelectorAll('#dil [data-ds]').forEach((b) => b.addEventListener('click', () => { S.status = b.dataset.ds; peta(); tekan('#dil [data-ds]', 'ds', S.status); }));
     document.querySelectorAll('#dil [data-ks]').forEach((b) => b.addEventListener('click', () => { S.kelSort = b.dataset.ks; kelurahan(); tekan('#dil [data-ks]', 'ks', S.kelSort); }));
     $('#dil-bu-sel')?.addEventListener('change', (e) => { BU.pilih = e.target.value; belumUmur(); });
+    $('#dil-bu-st')?.addEventListener('change', (e) => { BU.status = e.target.value; belumUmur(); });
     $('#dil-kel-cari')?.addEventListener('input', (e) => { S.kelCari = e.target.value.trim().toUpperCase(); kelurahan(); });
     const coba = () => hitungDl().catch((e) => { $('#dil-dl-info').textContent = e.message === 'Kata sandi kosong' ? 'Masukkan kata sandi untuk membuka data detail.' : 'Gagal membuka: ' + e.message; });
     $('#dil-dl-jenis')?.addEventListener('change', (e) => { D.jenis = e.target.value; if (S.detail) coba(); });

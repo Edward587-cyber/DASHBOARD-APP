@@ -404,8 +404,8 @@ body { background: var(--color-bg); }
 #dash-root .pt-lock-row input:focus-visible { outline: 2px solid var(--accent); }
 #dash-root .pt-err { color: #f87171; margin: 0; font-weight: 600; }
 #dash-root .pt-spln[hidden] { display: none; } #dash-root .pt-spln .pt-lock-row a.rp-btn { text-decoration: none; display: inline-flex; align-items: center; } @media (max-width: 640px) { #dash-root .pt-spln .pt-lock-row { flex-wrap: wrap; } #dash-root .pt-spln .pt-lock-row input { flex-basis: 100%; } }
-#dash-root .dil-bu-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; } @media (max-width: 900px) { #dash-root .dil-bu-grid { grid-template-columns: minmax(0, 1fr); } }
-#dash-root #dil-bu-tbl td.wrap { min-width: 9rem; } #dil-bu .rp-dds, #dil-bu .rp-dd { max-width: 100%; min-width: 0; } #dil-bu .rp-dd select { max-width: 100%; min-width: 0; }
+#dash-root .dil-bu-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr); gap: 20px; align-items: start; } @media (max-width: 900px) { #dash-root .dil-bu-grid { grid-template-columns: minmax(0, 1fr); } }
+#dash-root #dil-bu-tbl td.wrap { min-width: 8rem; white-space: normal; } #dil-bu .rp-dds, #dil-bu .rp-dd { max-width: 100%; min-width: 0; } #dil-bu .rp-dd select { max-width: 100%; min-width: 0; }
 #dash-root #dil-bu-tbl tfoot td { font-weight: 800; border-top: 1px solid var(--color-border-line); }
 #dash-root .pt-empty { color: var(--color-fg-muted); margin: 0; }
 @media (max-width: 640px) { #dash-root .pt-meta { display: none; } }
@@ -548,7 +548,7 @@ body.terkunci #dash-root, body.terkunci .rp-shell { display: none !important; }
         <div id="dil-peta" class="rp-map" role="img" aria-label="Peta sebaran meter target umur"></div>
       </div>
       <div class="rp-card wide" id="dil-bu">
-        <div class="rp-ch"><h3>Breakdown meter belum diganti per umur</h3><p class="rp-cap" id="dil-bu-cap">Meter yang nomornya masih sama di DIL akhir, dikelompokkan menurut umur.</p></div>
+        <div class="rp-ch"><h3>Breakdown meter per kelas umur</h3><p class="rp-cap" id="dil-bu-cap">Meter yang nomornya masih sama di DIL akhir, dikelompokkan menurut umur.</p></div>
         <div class="rp-toolbar">
           <div class="rp-dds"><label class="rp-dd"><span>Jenis</span><select id="dil-bu-sel" aria-label="Jenis layanan dan fasa">
             <option value="Semua|Semua">Semua (paska + prabayar)</option>
@@ -556,11 +556,16 @@ body.terkunci #dash-root, body.terkunci .rp-shell { display: none !important; }
             <option value="Paskabayar|3 Phasa">Paskabayar 3 phasa</option>
             <option value="Prabayar|1 Phasa">Prabayar 1 phasa</option>
             <option value="Prabayar|3 Phasa">Prabayar 3 phasa</option>
+          </select></label>
+          <label class="rp-dd"><span>Status</span><select id="dil-bu-st" aria-label="Status penggantian">
+            <option value="belum">Belum diganti</option>
+            <option value="terganti">Sudah diganti</option>
+            <option value="semua">Semua meter</option>
           </select></label></div>
         </div>
         <div class="dil-bu-grid">
           <div class="rp-chart" id="dil-bu-chart"></div>
-          <div style="overflow-x:auto"><table class="rp-table" id="dil-bu-tbl"><thead><tr><th class="l">Umur meter</th><th>Jumlah</th><th>%</th><th class="l">Merk terbanyak</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+          <div style="overflow-x:auto"><table class="rp-table" id="dil-bu-tbl"><thead><tr><th class="l">Umur meter</th><th>Jumlah</th><th>%</th><th>Target umur</th><th class="l">Merk terbanyak</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
         </div>
       </div>
       <div class="rp-card">
@@ -923,7 +928,7 @@ body.terkunci #dash-root, body.terkunci .rp-shell { display: none !important; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script>window.DIL_VERSI = "202412-202609-3";</script>
-<script src="gerbang.js?v=20261112-3"></script>
+<script>window.DIL_VERSI = "202412-202609-4";</script>
+<script src="gerbang.js?v=20261112-4"></script>
 </body>
 </html>
